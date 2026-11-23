@@ -1,29 +1,22 @@
 /**
- * A camera's still picture, as the card and the full-screen view show it: either Home
- * Assistant's picture (CameraPicture), or the frame saved from live video (see
- * live-frames.ts), with a small label saying which.
+ * A camera's still picture, as the card and the full-screen view show it: Home Assistant's
+ * picture (CameraPicture), with a small label for cameras whose picture is a recording
+ * rather than a current view (see picture-updates.ts):
  *
- *   "Live at 16:42"    the saved frame from watching live
- *   "Last recording"   Home Assistant's picture, for cameras where it is not a current view
- *   (no label)         Home Assistant's picture, which is current
- *
- * Home Assistant's picture stays loaded underneath the saved frame, so when a newer
- * recording replaces the frame there is no wait on a black screen: the picture is already
- * there, and refreshes in place.
+ *   "Last recording"      the picture is the camera's last recorded event
+ *   "Updating picture…"   live view has just stopped, and Ring is still processing its recording
  */
 
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import type { EntityState } from '../../core/home-assistant';
 import { CameraPicture } from './CameraPicture';
-import {
-  liveFrameFor,
-  liveTimeLabel,
-  onLiveFramesChanged,
-  stillFor,
-  type LiveFrame,
-} from './live-frames';
 import { readCamera } from './model';
-import { diag } from './diag';
+import {
+  labelFor,
+  liveStoppedAt,
+  onPictureUpdatesChanged,
+  PICTURE_UPDATE_WAIT_MS,
+} from './picture-updates';
 
 export interface CameraStillProps {
   entity: EntityState;
@@ -33,38 +26,31 @@ export interface CameraStillProps {
 
 export function CameraStill({ entity, homeAddress, refreshMs }: CameraStillProps) {
   const entityId = entity.entity_id;
-  const [frame, setFrame] = useState(() => liveFrameFor(entityId));
+  const [stopped, setStopped] = useState(() => liveStoppedAt(entityId));
+  const [now, setNow] = useState(() => Date.now());
 
-  // A frame saved while this picture is showing (the view saves one as live video stops).
-  useEffect(() => onLiveFramesChanged(() => setFrame(liveFrameFor(entityId))), [entityId]);
+  useEffect(
+    () =>
+      onPictureUpdatesChanged(() => {
+        setStopped(liveStoppedAt(entityId));
+        setNow(Date.now());
+      }),
+    [entityId],
+  );
 
-  const still = stillFor(readCamera(entity).recordingId, frame);
+  const label = labelFor(readCamera(entity).recordingId, stopped, now);
+
+  // While waiting, look again when the wait runs out, so the label changes back by itself.
+  useEffect(() => {
+    if (label !== 'Updating picture…' || stopped === undefined) return;
+    const timer = setTimeout(() => setNow(Date.now()), stopped.at + PICTURE_UPDATE_WAIT_MS - now);
+    return () => clearTimeout(timer);
+  }, [label, stopped, now]);
 
   return (
     <div class="camera-still">
       <CameraPicture entity={entity} homeAddress={homeAddress} refreshMs={refreshMs} />
-      {still.kind === 'live-frame' && <FrameCanvas frame={still.frame} />}
-      {still.kind === 'live-frame' && (
-        <div class="camera-label">{liveTimeLabel(still.frame.takenAt)}</div>
-      )}
-      {still.kind === 'recording' && <div class="camera-label">Last recording</div>}
+      {label !== null && <div class="camera-label">{label}</div>}
     </div>
   );
-}
-
-/** Draws the saved frame onto a canvas of the same size; CSS fits it to the space. */
-function FrameCanvas({ frame }: { frame: LiveFrame }) {
-  const canvas = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const target = canvas.current;
-    if (target === null) return;
-    target.width = frame.image.width;
-    target.height = frame.image.height;
-    const drawing = target.getContext('2d');
-    if (drawing !== null) drawing.drawImage(frame.image, 0, 0);
-    diag('frame drawn on screen');
-  }, [frame]);
-
-  return <canvas ref={canvas} class="camera-picture camera-frame" />;
 }

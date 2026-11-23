@@ -1,6 +1,6 @@
 /**
- * The inside of a camera's card: its still picture, refreshed every 10 seconds, or the frame
- * last seen in live video (see CameraStill.tsx).
+ * The inside of a camera's card: its still picture, refreshed every 10 seconds, with a label
+ * for cameras whose picture is a recording (see CameraStill.tsx).
  */
 
 import type { CardProps } from '../device-type';

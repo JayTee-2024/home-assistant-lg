@@ -6,8 +6,8 @@
  * replaces the picture once it arrives. Live video starts with the sound off. Closing the view
  * ends the live session.
  *
- * When live video stops, its last frame is kept as the camera's picture where the camera's
- * own picture is only its last recording (see live-frames.ts).
+ * When live video stops, a camera whose picture is its last recording (Ring) labels it
+ * "Updating picture…" until Ring's recording of the live view arrives (see picture-updates.ts).
  *
  * Live video is only started on request: each live view wakes a Ring doorbell and starts a
  * session with Ring. The session's states are in src/core/live-video.ts; the WebRTC work
@@ -23,8 +23,7 @@ import {
 } from '../../core/live-video';
 import type { PanelProps } from '../device-type';
 import { CameraStill } from './CameraStill';
-import { saveLiveFrame } from './live-frames';
-import { diag } from './diag';
+import { noteLiveStopped } from './picture-updates';
 import { cameraControls, readCamera } from './model';
 
 /** How often the still picture is fetched again: quick, since someone is looking at it. */
@@ -88,51 +87,20 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
     if (isLost && liveButton.current !== null) liveButton.current.focus();
   }, [state]);
 
-  // The latest recording id, for saving a frame when a session stops (see live-frames.ts).
+  // The latest recording id, for noting when live view stops (see picture-updates.ts).
   const recordingNow = useRef<string | null>(null);
   recordingNow.current = readCamera(entity).recordingId;
 
-  /** Keeps the frame on screen as the camera's picture, for cameras whose picture is a recording. */
-  function saveFrame(element: HTMLVideoElement) {
-    const recordingId = recordingNow.current;
-    // HAVE_CURRENT_DATA (2): a frame has been shown. Before that there is nothing worth keeping.
-    if (recordingId === null || element.readyState < 2 || element.videoWidth === 0) return;
-    try {
-      // Copy the frame, then read its pixels out and write them into a second canvas. On the
-      // LG C9 a canvas that a video was drawn into still depends on the TV's video hardware,
-      // and shows black for 20 seconds to a minute; the second canvas holds plain pixels.
-      const width = element.videoWidth;
-      const height = element.videoHeight;
-      const copy = document.createElement('canvas');
-      copy.width = width;
-      copy.height = height;
-      const copyDrawing = copy.getContext('2d');
-      if (copyDrawing === null) return;
-      let t = Date.now();
-      copyDrawing.drawImage(element, 0, 0);
-      const pixels = copyDrawing.getImageData(0, 0, width, height);
-      diag('copy and read ' + (Date.now() - t) + 'ms, brightness ' + brightness(pixels.data));
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const drawing = canvas.getContext('2d');
-      if (drawing === null) return;
-      t = Date.now();
-      drawing.putImageData(pixels, 0, 0);
-      diag('written to plain canvas ' + (Date.now() - t) + 'ms');
-      saveLiveFrame(entityId, { image: canvas, takenAt: new Date(), recordingId });
-      diag('frame saved');
-    } catch (error) {
-      diag('saveFrame failed ' + String(error));
-      // A frame that cannot be copied is not worth an error: the old picture stays.
-    }
-  }
-
   function stopSession() {
-    diag('stopSession, state ' + stateNow.current);
     const element = video.current;
-    // The frame first, while the video still shows it.
-    if (element !== null) saveFrame(element);
+    // A camera whose picture is its last recording (Ring) records the live view too: its
+    // picture says "Updating picture…" until that recording arrives.
+    const recordingId = recordingNow.current;
+    // 'ended' counts too: Ring cut a session that was playing.
+    const wasPlaying = stateNow.current === 'playing' || stateNow.current === 'ended';
+    if (wasPlaying && recordingId !== null) {
+      noteLiveStopped(entityId, { at: Date.now(), recordingId });
+    }
     if (session.current !== null) {
       session.current.stop();
       session.current = null;
@@ -151,7 +119,6 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
       element.removeAttribute('src');
       element.load();
     }
-    diag('stopped tracks and emptied the player');
   }
 
   function startSession() {
@@ -230,15 +197,4 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
       {controls.status !== null && <div class="camera-status">{controls.status}</div>}
     </div>
   );
-}
-
-/** DIAG: the average brightness (0 to 255) of a spread of pixels. */
-function brightness(data: Uint8ClampedArray): number {
-  let total = 0;
-  let count = 0;
-  for (let i = 0; i < data.length; i += 4 * 997) {
-    total += (data[i] ?? 0) + (data[i + 1] ?? 0) + (data[i + 2] ?? 0);
-    count += 3;
-  }
-  return count === 0 ? 0 : Math.round(total / count);
 }

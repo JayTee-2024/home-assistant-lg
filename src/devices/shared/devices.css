@@ -131,18 +131,11 @@
   object-fit: cover;
 }
 
-/* The picture with its label (CameraStill.tsx): "Live at 16:42" or "Last recording". */
+/* The picture with its label (CameraStill.tsx): "Last recording" or "Updating picture…". */
 .camera-still {
   position: relative;
   width: 100%;
   height: 100%;
-}
-
-/* The saved live frame, laid over Home Assistant's picture (which stays loaded beneath it). */
-.camera-frame {
-  position: absolute;
-  top: 0;
-  left: 0;
 }
 
 .camera-label {

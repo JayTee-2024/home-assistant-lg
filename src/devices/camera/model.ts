@@ -19,7 +19,7 @@ export interface CameraView {
   /**
    * Which recording the picture comes from (`last_video_id`), for cameras whose picture is
    * their last recording rather than a current view, such as Ring. Null for other cameras.
-   * See live-frames.ts.
+   * See picture-updates.ts.
    */
   recordingId: string | null;
 }
