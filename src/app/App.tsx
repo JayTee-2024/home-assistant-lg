@@ -13,11 +13,11 @@
  */
 
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { buildDevices, findDevice } from '../core/devices';
+import { buildDevices, findDevice, groupByRoom, type Device } from '../core/devices';
 import { EMPTY_HOME, type HomeSnapshot } from '../core/home-assistant';
 import type { ConnectionStatus, HomeConnection } from '../core/home-connection';
 import { withTimeout } from '../core/http';
-import { pageCount, withCurrentSizes } from '../core/layout';
+import { addCard, hasCard, pageCount, removeCard, withCurrentSizes } from '../core/layout';
 import { createLongPress } from '../core/long-press';
 import {
   applyPending,
@@ -44,6 +44,7 @@ import { DEVICE_TYPES, deviceTypeFor } from '../devices/registry';
 import { ConnectingScreen } from '../screens/connecting/ConnectingScreen';
 import { HomeScreen, type PageEntry } from '../screens/home/HomeScreen';
 import { PanelOverlay } from '../screens/panel/PanelOverlay';
+import { SettingsScreen } from '../screens/settings/SettingsScreen';
 import {
   focusElement,
   focusFirst,
@@ -87,6 +88,7 @@ export function App() {
   const [page, setPage] = useState(0);
   const [pageEntry, setPageEntry] = useState<PageEntry | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [userName, setUserName] = useState('');
 
   // The newest saved state, for code that runs later (timers, the connection's callbacks)
   // and would otherwise see the state as it was when that code was set up.
@@ -136,6 +138,7 @@ export function App() {
     ).then(
       (connection) => {
         connectionRef.current = connection;
+        setUserName(connection.userName);
         setHasConnectFailed(false);
         setStatus('connected');
         connection.onHome((next) => {
@@ -222,6 +225,26 @@ export function App() {
     else run(action);
   }
 
+  /** In the picker: puts the device on the home screen, or takes it off. */
+  function toggleDevice(device: Device) {
+    const size = device.cardSize;
+    if (size === null) return;
+
+    updateSaved((state) => ({
+      ...state,
+      layout: hasCard(state.layout, device.id)
+        ? removeCard(state.layout, device.id)
+        : addCard(state.layout, device.id, size),
+    }));
+  }
+
+  /** Signs out for real: Home Assistant cancels this TV's sign-in, then the TV forgets it. */
+  function signOut() {
+    const connection = connectionRef.current;
+    const cancelled = connection === null ? Promise.resolve() : connection.signOut();
+    cancelled.then(() => signOutLocally(null));
+  }
+
   /** Shows another page. `from` is the side focus comes in from, when the arrows flipped it. */
   function showPage(next: number, from: 'left' | 'right' | null) {
     const focused = document.activeElement;
@@ -270,8 +293,10 @@ export function App() {
     if (overlay.kind !== 'none' || phase !== 'home') return;
     const before = focusBeforeOverlay.current;
     focusBeforeOverlay.current = null;
-    if (before !== null && document.body.contains(before)) focusElement(before);
-    else if (before !== null) focusFirst(topScope());
+    if (before === null) return;
+    // What had the focus may be gone: "Add devices" disappears once there is a card.
+    if (document.body.contains(before)) focusElement(before);
+    else focusFirst(topScope());
   }, [overlay]);
 
   // If the last page empties, step back to one that exists.
@@ -399,6 +424,19 @@ export function App() {
 
       {panelDevice !== null && (
         <PanelOverlay device={panelDevice} home={shownHome} onRun={run} onClose={closeOverlay} />
+      )}
+
+      {overlay.kind === 'settings' && (
+        <SettingsScreen
+          rooms={groupByRoom(devices)}
+          layout={saved.layout}
+          address={saved.signIn === null ? '' : saved.signIn.address}
+          userName={userName}
+          onToggleDevice={toggleDevice}
+          onUnsupportedDevice={(device) => showToast(device.name + ' is not supported yet.')}
+          onSignOut={signOut}
+          onClose={closeOverlay}
+        />
       )}
 
       <Toast message={toast} />

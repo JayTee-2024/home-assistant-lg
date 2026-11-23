@@ -1,0 +1,199 @@
+/*
+ * Settings: the list of sections on the left, the chosen section on the right.
+ */
+
+.settings {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  background: #0e1116;
+  z-index: 10;
+}
+
+.settings-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ---- The sections on the left ---- */
+
+.settings-sections {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 26rem;
+  padding: 2.5rem 1.5rem 2.5rem 4rem;
+  border-right: 0.0625rem solid #2e3642;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 4.5rem;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 1.5rem;
+  border: 0;
+  border-radius: 1rem;
+  background: transparent;
+  color: #f2f4f7;
+  font: inherit;
+  font-weight: 500;
+  text-align: left;
+}
+
+.settings-section-current {
+  background: #232a34;
+  font-weight: 600;
+}
+
+.settings-section:disabled {
+  color: #7d8794;
+}
+
+.settings-section-note {
+  font-size: 1.25rem;
+  font-weight: 400;
+}
+
+/* ---- The chosen section ---- */
+
+.settings-content {
+  flex: 1;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 2.5rem 4rem 3rem 3rem;
+  overflow-y: auto;
+}
+
+.settings-content h1 {
+  font-size: 2.75rem;
+}
+
+.settings-note {
+  max-width: 60rem;
+  margin: 1rem 0 1.5rem;
+  color: #a7b0bd;
+}
+
+.settings-fact {
+  margin: 1.5rem 0;
+}
+
+.settings-fact-label {
+  color: #a7b0bd;
+  font-size: 1.375rem;
+}
+
+.settings-fact-value {
+  font-size: 1.875rem;
+  font-weight: 500;
+}
+
+.settings-buttons {
+  display: flex;
+}
+
+.settings-buttons .button {
+  height: 4.5rem;
+  margin-right: 1.5rem;
+  font-size: 1.5rem;
+}
+
+/* ---- The device picker ---- */
+
+.picker-room {
+  margin: 2rem 0 0.75rem;
+  color: #a7b0bd;
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.picker-row {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 5rem;
+  margin-bottom: 0.75rem;
+  padding: 0 1.5rem;
+  border: 0;
+  border-radius: 1rem;
+  background: #1a1f27;
+  color: #f2f4f7;
+  font: inherit;
+  text-align: left;
+}
+
+.picker-icon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  margin-right: 1.25rem;
+  border-radius: 50%;
+  background: #232a34;
+  color: #a7b0bd;
+}
+
+.picker-icon .icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.picker-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.picker-type {
+  flex: none;
+  width: 10rem;
+  color: #a7b0bd;
+}
+
+.picker-state {
+  flex: none;
+  width: 13rem;
+  color: #a7b0bd;
+  text-align: right;
+}
+
+/* A device that is on the home screen: amber, like anything that is on. */
+.picker-row-on .picker-icon {
+  background: #ffb454;
+  color: #1a1206;
+}
+
+.picker-row-on .picker-state {
+  color: #ffb454;
+  font-weight: 600;
+}
+
+.picker-row-unsupported {
+  background: transparent;
+  color: #7d8794;
+}
+
+.picker-row-unsupported .picker-name {
+  font-weight: 400;
+}
+
+.picker-row-unsupported .picker-state {
+  width: 16rem;
+}

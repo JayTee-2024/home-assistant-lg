@@ -11,6 +11,7 @@ import '../screens/sign-in/sign-in.css';
 import '../devices/shared/devices.css';
 import '../screens/home/home.css';
 import '../screens/panel/panel.css';
+import '../screens/settings/settings.css';
 
 import { render } from 'preact';
 import { App } from './App';

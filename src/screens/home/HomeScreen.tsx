@@ -43,14 +43,19 @@ export function HomeScreen(props: HomeScreenProps) {
   const pages = pageCount(props.layout);
   const cards = cardsOnPage(props.layout, props.page);
 
-  // When the screen first appears, focus its first card, or the "Add devices" button when
-  // there are no cards. (The title bar's buttons come first in the page, so "the first
-  // thing that can take focus" would be the settings button.)
+  // The card nearest the top left is marked as the one to focus first. Without a mark the
+  // settings button would take the focus, because the title bar comes first in the page.
+  let firstCard = cards[0];
+  for (const card of cards) {
+    if (firstCard === undefined) break;
+    const isHigher = card.row < firstCard.row;
+    const isFurtherLeft = card.row === firstCard.row && card.column < firstCard.column;
+    if (isHigher || isFurtherLeft) firstCard = card;
+  }
+
+  // When the screen first appears, focus that card, or "Add devices" when there are no cards.
   useEffect(() => {
-    const firstCard =
-      grid.current === null ? null : grid.current.querySelector<HTMLElement>('[data-card]');
-    if (firstCard !== null) focusElement(firstCard);
-    else focusFirst(topScope());
+    focusFirst(topScope());
   }, []);
 
   // After a page flip, focus the card on the entering side that is nearest the old row.
@@ -102,6 +107,7 @@ export function HomeScreen(props: HomeScreenProps) {
               <DeviceCard
                 key={place.deviceId}
                 place={place}
+                isFirst={place === firstCard}
                 device={findDevice(props.devices, place.deviceId)}
                 home={props.home}
                 onPress={() => props.onCardPress(place.deviceId)}

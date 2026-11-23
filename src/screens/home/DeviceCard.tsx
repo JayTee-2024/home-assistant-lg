@@ -16,6 +16,8 @@ import { Icon, MORE_ICON } from '../shared/Icon';
 
 export interface DeviceCardProps {
   place: CardPlace;
+  /** True for the card that takes the focus when the home screen appears. */
+  isFirst: boolean;
   /** null when Home Assistant no longer has the device this card was made for. */
   device: Device | null;
   home: HomeSnapshot;
@@ -50,6 +52,7 @@ export function DeviceCard(props: DeviceCardProps) {
         style={style}
         data-focusable
         data-card={place.deviceId}
+        data-focus-first={props.isFirst ? '' : undefined}
         tabIndex={0}
       >
         <div class="card-names">
@@ -72,6 +75,7 @@ export function DeviceCard(props: DeviceCardProps) {
       aria-label={device.name}
       data-focusable
       data-card={device.id}
+      data-focus-first={props.isFirst ? '' : undefined}
       tabIndex={0}
       onClick={props.onPress}
     >
