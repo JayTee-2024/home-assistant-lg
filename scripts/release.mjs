@@ -11,7 +11,15 @@
 // Every link then points there, apps.json goes into dist/release/ instead of the repo,
 // and `npx http-server dist/release -p 8080` serves the lot. See docs/releasing.md.
 
-import { copyFileSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import {
   downloadUrl,
   makeManifest,
@@ -28,6 +36,9 @@ const baseUrlFlag = process.argv.indexOf('--base-url');
 const baseUrl = baseUrlFlag === -1 ? undefined : process.argv[baseUrlFlag + 1];
 if (baseUrlFlag !== -1 && !baseUrl)
   stop('Give an address after --base-url, such as http://192.168.1.10:8080');
+
+if (!existsSync(OUTPUT_FOLDER + '/appinfo.json'))
+  stop('Nothing to release. Run npm run package first.');
 
 // package.mjs has already copied package.json's version into the built appinfo.json.
 const appInfo = JSON.parse(readFileSync(OUTPUT_FOLDER + '/appinfo.json', 'utf8'));
