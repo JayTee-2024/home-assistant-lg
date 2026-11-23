@@ -44,6 +44,8 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
   };
   const [isMuted, setIsMuted] = useState(true);
   const session = useRef<LiveVideo | null>(null);
+  // The live stream, so stopping can end its tracks (see stopSession).
+  const stream = useRef<MediaStream | null>(null);
   const video = useRef<HTMLVideoElement>(null);
   const liveButton = useRef<HTMLButtonElement>(null);
 
@@ -123,17 +125,28 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
 
   function stopSession() {
     diag('stopSession, state ' + stateNow.current);
+    const element = video.current;
+    // The frame first, while the video still shows it.
+    if (element !== null) saveFrame(element);
     if (session.current !== null) {
       session.current.stop();
       session.current = null;
     }
-    const element = video.current;
-    if (element !== null) {
-      saveFrame(element);
-      element.pause();
-      // Let go of the stream, so the TV stops decoding it.
-      (element as HTMLVideoElement & { srcObject: MediaStream | null }).srcObject = null;
+    // End the stream's tracks and empty the player. On the LG C9 the video is drawn by a
+    // hardware decoder, and the screen stays black over it until the decoder is shut down.
+    // Without this it only shut down when the browser next cleared away unused objects,
+    // 20 seconds to a minute later.
+    if (stream.current !== null) {
+      stream.current.getTracks().forEach((track) => track.stop());
+      stream.current = null;
     }
+    if (element !== null) {
+      element.pause();
+      (element as HTMLVideoElement & { srcObject: MediaStream | null }).srcObject = null;
+      element.removeAttribute('src');
+      element.load();
+    }
+    diag('stopped tracks and emptied the player');
   }
 
   function startSession() {
@@ -143,9 +156,10 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
     let thisSession: LiveVideo | null = null;
     const isCurrent = () => session.current === thisSession;
     thisSession = liveVideo.start(entityId, {
-      onStream(stream) {
+      onStream(arrived) {
         if (!isCurrent() || video.current === null) return;
-        (video.current as HTMLVideoElement & { srcObject: MediaStream | null }).srcObject = stream;
+        stream.current = arrived;
+        (video.current as HTMLVideoElement & { srcObject: MediaStream | null }).srcObject = arrived;
         video.current.muted = isMutedNow.current;
         // play() rejects if the session is stopped before playback starts. Nothing to do then.
         video.current.play().catch(() => undefined);
