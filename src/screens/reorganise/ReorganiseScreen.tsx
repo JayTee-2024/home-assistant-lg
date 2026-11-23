@@ -3,7 +3,8 @@
  *
  * With the remote: arrows move between cards; OK picks the focused card up; the arrows then
  * move it (past the left or right edge it goes to the next page); OK puts it down; Back puts
- * it back where it was. With the pointer: press on a card, drag it, and let go.
+ * it back where it was. With the pointer: press on a card, drag it, and let go; rest it over
+ * a page arrow at the side to carry it to the next page, or click the arrows to turn pages.
  * Back with nothing picked up, or "Done", saves and leaves. Empty pages are removed then.
  *
  * The keys reach this screen through `registerKeys`: the app passes every key here first,
@@ -31,11 +32,14 @@ import { cellAt, stepPlace } from '../../core/reorganise';
 import type { RemoteKey } from '../../core/remote-key';
 import { deviceTypeFor } from '../../devices/registry';
 import { focusElement, focusFirst, moveFocus, topScope } from '../shared/focus';
-import { Icon } from '../shared/Icon';
+import { Icon, LEFT_ICON, RIGHT_ICON } from '../shared/Icon';
 import { along, span } from '../home/grid-position';
 
 /** The four-arrow "move" marker drawn on every card. */
 const MOVE_ICON = 'M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20';
+
+/** How long a card dragged with the pointer must rest over a page arrow before the page turns. */
+const EDGE_TURN_MS = 700;
 
 /** How long "It does not fit there" stays up. */
 const REFUSED_MS = 1500;
@@ -65,6 +69,8 @@ export function ReorganiseScreen(props: ReorganiseScreenProps) {
   const [isRefused, setIsRefused] = useState(false);
   const grid = useRef<HTMLDivElement>(null);
   const refusedTimer = useRef<number | null>(null);
+  /** Set while a dragged card rests over a page arrow; turns the page when it fires. */
+  const edgeTimer = useRef<{ side: 'left' | 'right'; timer: number } | null>(null);
 
   // The key handler is registered once, so it reads the current values through this.
   const now = useRef({ layout, page, held });
@@ -126,6 +132,22 @@ export function ReorganiseScreen(props: ReorganiseScreenProps) {
     if (current === null) return;
     setHeld({ ...current, place });
     setPage(place.page);
+  }
+
+  /** Turns the page, for the pointer's page arrows. A dragged card goes with it. */
+  function turnPage(side: 'left' | 'right') {
+    const current = now.current;
+    const last = Math.max(
+      pageCount(current.layout) - 1,
+      current.held === null ? 0 : current.held.place.page,
+    );
+    const next = side === 'left' ? current.page - 1 : current.page + 1;
+    // While a card is carried, one page past the last may be used (it becomes a new page).
+    const limit = current.held === null ? last : pageCount(current.layout);
+    if (next < 0 || next > limit) return;
+
+    setPage(next);
+    if (current.held !== null) moveHeld({ ...current.held.place, page: next });
   }
 
   function finish() {
@@ -191,10 +213,28 @@ export function ReorganiseScreen(props: ReorganiseScreenProps) {
   useEffect(() => {
     if (held === null || !held.isDragging) return;
 
+    const stopEdgeTimer = () => {
+      if (edgeTimer.current !== null) clearTimeout(edgeTimer.current.timer);
+      edgeTimer.current = null;
+    };
+
     const onMove = (event: MouseEvent) => {
       const current = now.current.held;
       if (current === null || grid.current === null) return;
       const rect = grid.current.getBoundingClientRect();
+
+      // Resting beside the grid, over a page arrow, turns the page after a moment.
+      const side = event.clientX < rect.left ? 'left' : event.clientX > rect.right ? 'right' : null;
+      if (side === null) stopEdgeTimer();
+      else if (edgeTimer.current === null || edgeTimer.current.side !== side) {
+        stopEdgeTimer();
+        const timer = setTimeout(() => {
+          edgeTimer.current = null;
+          turnPage(side);
+        }, EDGE_TURN_MS);
+        edgeTimer.current = { side, timer };
+      }
+
       const gap = parseFloat(getComputedStyle(document.documentElement).fontSize) * 1.5;
       const cell = cellAt(event.clientX, event.clientY, rect, gap);
       const size = cellsOf(current.from.size);
@@ -204,13 +244,17 @@ export function ReorganiseScreen(props: ReorganiseScreenProps) {
         row: Math.min(cell.row, GRID_ROWS - size.rows),
       });
     };
-    const onUp = () => drop();
+    const onUp = () => {
+      stopEdgeTimer();
+      drop();
+    };
 
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
     return () => {
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
+      stopEdgeTimer();
     };
   }, [held === null ? null : held.deviceId, held !== null && held.isDragging]);
 
@@ -272,6 +316,30 @@ export function ReorganiseScreen(props: ReorganiseScreenProps) {
             />
           )}
         </div>
+
+        {/* The pointer's way to turn the page, as on the home screen. Hidden from the arrows. */}
+        {page > 0 && (
+          <button
+            class="page-arrow page-arrow-left"
+            aria-label="Previous page"
+            data-pointer-only
+            tabIndex={-1}
+            onClick={() => turnPage('left')}
+          >
+            <Icon path={LEFT_ICON} />
+          </button>
+        )}
+        {page < pages - 1 && (
+          <button
+            class="page-arrow page-arrow-right"
+            aria-label="Next page"
+            data-pointer-only
+            tabIndex={-1}
+            onClick={() => turnPage('right')}
+          >
+            <Icon path={RIGHT_ICON} />
+          </button>
+        )}
 
         {pages > 1 && (
           <div class="page-dots" aria-label={'Page ' + (page + 1) + ' of ' + pages}>

@@ -74,3 +74,21 @@ describe('startFakeHomeServer', () => {
     expect(first.type).toBe('auth_required');
   });
 });
+
+describe('a slow camera, for tests', () => {
+  let slow = null;
+  afterEach(async () => {
+    if (slow) await slow.stop();
+    slow = null;
+  });
+
+  it('can be told to take a while to send a camera picture, as a cloud camera does', async () => {
+    slow = await startFakeHomeServer(sampleHome, 0, { pictureDelayMs: 300 });
+    const started = Date.now();
+
+    const answer = await fetch(slow.address + '/api/camera_proxy/camera.front_door');
+
+    expect(answer.status).toBe(200);
+    expect(Date.now() - started).toBeGreaterThanOrEqual(290);
+  });
+});

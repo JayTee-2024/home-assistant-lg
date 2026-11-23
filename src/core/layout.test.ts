@@ -228,6 +228,8 @@ describe('moveCard', () => {
     expect(moveCard(layout, 'doorbell', { page: 0, column: 5, row: 0 })).toBeNull();
     expect(moveCard(layout, 'doorbell', { page: 0, column: 0, row: 2 })).toBeNull();
     expect(moveCard(layout, 'doorbell', { page: -1, column: 0, row: 0 })).toBeNull();
+    expect(moveCard(layout, 'doorbell', { page: 0, column: -1, row: 0 })).toBeNull();
+    expect(moveCard(layout, 'doorbell', { page: 0, column: 0, row: -1 })).toBeNull();
   });
 
   it('refuses to move a card that is not there', () => {

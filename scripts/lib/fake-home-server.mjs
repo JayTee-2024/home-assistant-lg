@@ -10,10 +10,11 @@ import { WebSocketServer } from 'ws';
 import { createFakeHome } from './fake-home.mjs';
 
 /**
- * Starts the stand-in home. Port 0 means "any free port".
+ * Starts the stand-in home. Port 0 means "any free port". `pictureDelayMs` makes camera
+ * pictures arrive late, like a cloud camera's.
  * Resolves with { address, home, stop() }; `address` is like 'http://localhost:8124'.
  */
-export function startFakeHomeServer(sampleHome, port) {
+export function startFakeHomeServer(sampleHome, port, { pictureDelayMs = 0 } = {}) {
   const home = createFakeHome(sampleHome);
 
   const httpServer = createServer((request, response) => {
@@ -37,8 +38,12 @@ export function startFakeHomeServer(sampleHome, port) {
       const answer = home.handleHttp({ method: request.method, path, body });
 
       if (answer.bytes !== undefined) {
-        response.writeHead(answer.status, { 'Content-Type': answer.contentType });
-        response.end(answer.bytes);
+        // A camera picture. Cloud cameras such as Ring can take seconds to send one;
+        // pictureDelayMs imitates that.
+        setTimeout(() => {
+          response.writeHead(answer.status, { 'Content-Type': answer.contentType });
+          response.end(answer.bytes);
+        }, pictureDelayMs);
         return;
       }
       response.writeHead(answer.status, { 'Content-Type': 'application/json' });

@@ -77,12 +77,17 @@ export function stepTarget(view: ClimateView, target: number | null, direction: 
 /** A temperature for the screen: '21°', '20.5°'. */
 export function formatTemperature(value: number | null): string {
   if (value === null) return '–';
-  return String(Math.round(value * 10) / 10) + '°';
+  return String(Math.round(value * 100) / 100) + '°';
 }
 
-/** Rounds away floating-point dust so 0.1 steps give 21.1, not 21.100000000000001. */
+/**
+ * Rounds away floating-point dust so 0.1 steps give 21.1, not 21.100000000000001. Keeps as
+ * many decimals as the step is written with: two for 0.25, one for 0.5 or 0.1.
+ */
 function roundTo(value: number, step: number): number {
-  const decimals = Math.max(0, Math.ceil(-Math.log10(step) - 1e-9));
+  const written = String(step);
+  const point = written.indexOf('.');
+  const decimals = point === -1 ? 0 : written.length - point - 1;
   const factor = Math.pow(10, decimals);
   return Math.round(value * factor) / factor;
 }

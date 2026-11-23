@@ -113,6 +113,8 @@ If a control should not send on every press (heating's − and +), use `createDe
 
 ### 5. Describe the type: `index.ts`
 
+A shortened version of the real file (the real `isActive` and `summary` say a little more):
+
 ```ts
 export const climateType: DeviceType = {
   id: 'climate',

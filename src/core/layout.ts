@@ -113,6 +113,7 @@ export function withCurrentSizes(
 /** True when `place` lies wholly on the grid and covers no cell another card covers. */
 function fits(layout: Layout, place: CardPlace): boolean {
   const size = cellsOf(place.size);
+  if (place.column < 0 || place.row < 0) return false;
   if (place.column + size.columns > GRID_COLUMNS) return false;
   if (place.row + size.rows > GRID_ROWS) return false;
 

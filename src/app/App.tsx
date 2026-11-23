@@ -404,11 +404,21 @@ export function App() {
       const key = remoteKeyFromCode(event.keyCode);
       const now = current.current;
 
-      // A screen that has claimed the keys gets them first.
+      // A screen that has claimed the keys gets them first. A held key repeats: the arrows'
+      // repeats go to the screen too (holding an arrow keeps a card moving), and every other
+      // repeat is swallowed, so a held Back cannot run on into leaving the screen unsaved.
       const claimed = screenKeys.current;
-      if (key !== null && claimed !== null && !event.repeat && claimed(key)) {
-        event.preventDefault();
-        return;
+      if (key !== null && claimed !== null) {
+        const isArrow = key === 'up' || key === 'down' || key === 'left' || key === 'right';
+        if (event.repeat && !isArrow) {
+          event.preventDefault();
+          return;
+        }
+        // A key the screen does not want (OK on its Done button, say) goes on as usual.
+        if (claimed(key)) {
+          event.preventDefault();
+          return;
+        }
       }
 
       if (key === 'ok') {
@@ -429,6 +439,12 @@ export function App() {
       }
 
       if (key === 'back') {
+        // A held Back acts once. Its repeats are ignored, or holding it to close a panel
+        // would go on to leave the app.
+        if (event.repeat) {
+          event.preventDefault();
+          return;
+        }
         // Back closes what is open; on a first screen it hands over to the TV (see back.ts).
         // In a text field it is left alone, so the TV keyboard can close itself.
         if (now.overlay.kind !== 'none') closeOverlay();

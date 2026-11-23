@@ -79,6 +79,13 @@ describe('stepTarget', () => {
     ).toBe(5.5);
   });
 
+  it('keeps every decimal a step needs, such as 0.25', () => {
+    const quarter = readClimate(changed(tado, { target_temp_step: 0.25 }));
+
+    expect(stepTarget(quarter, 21, 1)).toBe(21.25);
+    expect(stepTarget(quarter, 21.25, 1)).toBe(21.5);
+  });
+
   it('avoids the floating-point dust of steps like 0.1', () => {
     expect(stepTarget(readClimate(tado), 21, 1)).toBe(21.1);
     expect(stepTarget(readClimate(tado), 21.1, 1)).toBe(21.2);

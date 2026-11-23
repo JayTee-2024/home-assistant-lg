@@ -1,5 +1,5 @@
 /**
- * A camera's still picture, fetched again every `refreshMs`.
+ * A camera's still picture, fetched again `refreshMs` after the last one arrived.
  *
  * The next picture is loaded out of sight and swapped in only once it has arrived, so the
  * screen never flashes empty between pictures. A picture that will not load is replaced by
@@ -24,34 +24,45 @@ export function CameraPicture({ entity, homeAddress, refreshMs }: CameraPictureP
   const view = readCamera(entity);
   const next = pictureUrl(homeAddress, view.picturePath, refreshCount);
 
-  // Count up every refreshMs, which changes `next` and so fetches a new picture.
-  useEffect(() => {
-    const timer = setInterval(() => setRefreshCount((count) => count + 1), refreshMs);
-    return () => clearInterval(timer);
-  }, [refreshMs]);
-
-  // Load the next picture out of sight; show it only once it has arrived.
+  // Load the next picture out of sight, and show it only once it has arrived. The refresh
+  // after it is planned only when this load has ended, well or badly: a cloud camera (Ring)
+  // can take longer than refreshMs to send a picture, and starting a new load on a fixed
+  // beat would throw each one away before it arrived, so none would ever be shown.
   useEffect(() => {
     if (next === null) {
       setFailed(true);
       return;
     }
+
+    let waitTimer: number | null = null;
+    const planNext = () => {
+      waitTimer = setTimeout(() => setRefreshCount((count) => count + 1), refreshMs);
+    };
+
     const loader = new Image();
     loader.onload = () => {
       setShown(next);
       setFailed(false);
+      planNext();
     };
-    loader.onerror = () => setFailed(true);
+    loader.onerror = () => {
+      setFailed(true);
+      planNext();
+    };
     loader.src = next;
+
     return () => {
       loader.onload = null;
       loader.onerror = null;
+      if (waitTimer !== null) clearTimeout(waitTimer);
     };
   }, [next]);
 
   // Until a first picture arrives, say what is happening. Once one has, a failed refresh
   // keeps it on screen; the home screen marks everything as out of date when Home Assistant
   // cannot be reached.
+  // A camera Home Assistant cannot reach says so, rather than showing an old picture.
+  if (!view.isAvailable) return <div class="camera-picture camera-none">Unavailable</div>;
   if (shown === null) {
     return <div class="camera-picture camera-none">{failed ? 'No picture' : 'Loading…'}</div>;
   }
