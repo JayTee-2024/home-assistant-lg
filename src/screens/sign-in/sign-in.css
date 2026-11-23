@@ -1,0 +1,109 @@
+/*
+ * The sign-in screen: an introduction on the left, the form on the right.
+ */
+
+.sign-in {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+  box-sizing: border-box;
+  min-height: 0;
+  padding: 3rem 4rem;
+}
+
+.sign-in-intro {
+  flex: 1;
+  min-width: 0;
+  margin-right: 6rem;
+  padding-top: 0.5rem;
+}
+
+.sign-in-lead {
+  margin: 2rem 0 3rem;
+  color: #a7b0bd;
+  font-size: 1.875rem;
+  line-height: 1.45;
+}
+
+.sign-in-before {
+  margin-bottom: 1.5rem;
+  color: #a7b0bd;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sign-in-step {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  font-size: 1.875rem;
+}
+
+.sign-in-step-number {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  margin-right: 1.5rem;
+  border-radius: 50%;
+  background: #232a34;
+  font-size: 1.625rem;
+  font-weight: 600;
+}
+
+.sign-in-form {
+  flex: 1;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 2.5rem 3rem;
+  border-radius: 1.5rem;
+  background: #1a1f27;
+}
+
+.sign-in-address {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 1.75rem;
+  border-radius: 1rem;
+  background: #232a34;
+}
+
+.sign-in-address .field-label {
+  margin-bottom: 0.375rem;
+  font-size: 1.375rem;
+}
+
+.sign-in-address-value {
+  font-size: 1.875rem;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.sign-in-message {
+  margin-top: 1.5rem;
+  color: #ffb454;
+  font-weight: 600;
+}
+
+.sign-in-fields {
+  display: flex;
+  flex-direction: column;
+  margin-top: 2rem;
+}
+
+.sign-in-fields > * {
+  margin-bottom: 1.5rem;
+}
+
+.sign-in-fields > *:last-child {
+  margin-bottom: 0;
+}
+
+.sign-in-note {
+  margin-top: 0;
+  color: #a7b0bd;
+}

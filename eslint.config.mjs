@@ -66,9 +66,11 @@ export default tseslint.config(
   },
   // The layers. Each folder may import only from the folders below it in this list:
   //   app > screens > devices > core, with platform beside them importing only core.
+  // Screens get what they need from the platform (the sender, closing the app) as props from app.
   layerRule(['src/core/**'], ['platform', 'devices', 'screens', 'app', 'proof']),
   layerRule(['src/platform/**'], ['devices', 'screens', 'app', 'proof']),
   layerRule(['src/devices/**'], ['platform', 'screens', 'app', 'proof']),
+  layerRule(['src/screens/**'], ['platform', 'app', 'proof']),
   {
     // Tests run on this computer's Node, not on the TV, so they are left out.
     files: ['src/**'],

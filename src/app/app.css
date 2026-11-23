@@ -1,10 +1,14 @@
 /*
- * Base styles for the whole app.
+ * Base styles for the whole app, and the pieces every screen shares.
  *
- * Scaling: every size is in rem, and 1rem is 1/120 of the screen width, so 1rem is 16px on a
- * 1920-wide screen and the layout scales to any TV without size-specific rules.
+ * Scaling: every size is in rem, and 1rem is 1/120 of the screen width, so 1rem is 16px on
+ * a 1920-wide screen and the layout scales to any TV without size-specific rules.
  *
- * Layout uses flexbox only. Chromium 53 (webOS TV 4.x) has no CSS grid.
+ * Layout uses flexbox and absolute positioning only. Chromium 53 (webOS TV 4.x) has no
+ * CSS grid, and no "gap" on flex containers, so spacing is done with margins.
+ *
+ * Colours: #0e1116 background, #1a1f27 surfaces, #232a34 raised, #2e3642 and #4a5565
+ * lines, #a7b0bd quiet text, #f2f4f7 text, #ffb454 amber for anything that is on.
  */
 
 html {
@@ -13,11 +17,19 @@ html {
 
 body {
   margin: 0;
+  overflow: hidden;
   background: #0e1116;
   color: #f2f4f7;
-  font-family: 'LG Smart UI', 'Segoe UI', Arial, sans-serif;
+  font-family: 'LG Smart UI', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   font-size: 1.5rem;
   line-height: 1.4;
+}
+
+h1 {
+  margin: 0;
+  font-size: 3.5rem;
+  font-weight: 600;
+  line-height: 1.1;
 }
 
 /* The white outline marks what the remote is focused on. Used by every screen. */
@@ -26,101 +38,149 @@ body {
   outline-offset: 0.25rem;
 }
 
-/* ---- TV proof screen (throwaway, removed with src/proof) ---- */
-
-.proof {
-  box-sizing: border-box;
-  min-height: 100vh;
-  padding: 3rem 4rem;
+/* One full screen. */
+.screen {
   display: flex;
   flex-direction: column;
+  width: 100vw;
+  height: 100vh;
 }
 
-.proof h1 {
-  margin: 0 0 1.5rem;
-  font-size: 2.75rem;
+.icon {
+  display: block;
+  width: 2rem;
+  height: 2rem;
 }
 
-.proof-row {
+/* ---- Title bar ---- */
+
+.title-bar {
   display: flex;
-  margin-bottom: 0.5rem;
-}
-
-.proof-label {
   flex: none;
-  width: 18rem;
-  color: #a7b0bd;
-}
-
-.proof-value {
-  flex: 1;
-  min-width: 0;
-  word-break: break-word;
-}
-
-.proof-controls {
-  display: flex;
-  align-items: flex-end;
-  margin: 1.5rem 0;
-}
-
-.proof-controls > * {
-  margin-right: 1.5rem;
-}
-
-.proof-field {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.proof-field label {
-  color: #a7b0bd;
-  margin-bottom: 0.5rem;
-}
-
-.proof input {
-  height: 4.5rem;
+  align-items: center;
+  justify-content: space-between;
   box-sizing: border-box;
-  padding: 0 1.25rem;
-  border: 0.0625rem solid #4a5565;
+  height: 6rem;
+  padding: 0 4rem;
+  border-bottom: 0.0625rem solid #2e3642;
+}
+
+.title-bar-name {
+  font-size: 2.25rem;
+  font-weight: 600;
+}
+
+.title-bar-buttons {
+  display: flex;
+}
+
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  margin-left: 1rem;
+  padding: 0;
+  border: 0.0625rem solid #2e3642;
   border-radius: 1rem;
   background: #1a1f27;
   color: #f2f4f7;
-  font: inherit;
 }
 
-.proof button {
+/* ---- Buttons and fields ---- */
+
+.button {
   height: 4.5rem;
-  padding: 0 2.5rem;
+  padding: 0 1.75rem;
   border: 0;
   border-radius: 1rem;
-  background: #ffb454;
-  color: #1a1206;
   font: inherit;
   font-weight: 600;
 }
 
-.proof button.secondary {
-  background: #232a34;
-  color: #f2f4f7;
+.button:disabled,
+.button-busy {
+  opacity: 0.5;
 }
 
-.proof-message {
-  color: #ffb454;
-  min-height: 2.1rem;
-}
-
-.proof-verdict {
-  margin-top: 1rem;
+.button-main {
+  height: 5.5rem;
+  background: #ffb454;
+  color: #1a1206;
   font-size: 2rem;
-  font-weight: 600;
 }
 
-.outcome-reached {
-  color: #7fd6a4;
+.button-outline {
+  flex: none;
+  border: 0.0625rem solid #4a5565;
+  background: transparent;
+  color: #f2f4f7;
+  font-weight: 500;
 }
 
-.outcome-other {
+.button-link {
+  align-self: flex-start;
+  height: 3.5rem;
+  padding: 0 0.75rem;
+  margin-left: -0.75rem;
+  background: transparent;
   color: #ffb454;
+  font-weight: 500;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.field-label {
+  margin-bottom: 0.75rem;
+  color: #a7b0bd;
+}
+
+.field input {
+  box-sizing: border-box;
+  height: 5rem;
+  padding: 0 1.5rem;
+  border: 0.0625rem solid #4a5565;
+  border-radius: 1rem;
+  background: #0e1116;
+  color: #f2f4f7;
+  font: inherit;
+  font-size: 1.875rem;
+}
+
+/* ---- A message in the middle of an otherwise empty screen ---- */
+
+.centred {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4rem;
+  text-align: center;
+}
+
+.centred-detail {
+  margin: 1.5rem 0 2.5rem;
+  color: #a7b0bd;
+  font-size: 1.875rem;
+}
+
+/* ---- The message strip at the bottom of the screen ---- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 3rem;
+  max-width: 70vw;
+  padding: 1rem 2rem;
+  border-radius: 1rem;
+  background: #f2f4f7;
+  color: #0e1116;
+  font-weight: 600;
+  transform: translateX(-50%);
+  z-index: 30;
 }

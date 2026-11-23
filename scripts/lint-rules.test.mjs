@@ -85,6 +85,24 @@ describe('layers only depend downwards', () => {
     ).toEqual([]);
   });
 
+  it.each(['../../app/App', '../../platform/storage'])(
+    'objects when a screen file imports %s',
+    async (path) => {
+      expect(await rulesBrokenBy(importing(path), 'src/screens/home/example.ts')).toContain(
+        'no-restricted-imports',
+      );
+    },
+  );
+
+  it('lets a screen file import from core and from devices', async () => {
+    expect(
+      await rulesBrokenBy(importing('../../core/layout'), 'src/screens/home/example.ts'),
+    ).toEqual([]);
+    expect(
+      await rulesBrokenBy(importing('../../devices/registry'), 'src/screens/home/example.ts'),
+    ).toEqual([]);
+  });
+
   it('lets a core file import another core file', async () => {
     expect(await rulesBrokenBy(importing('./layout'), 'src/core/example.ts')).toEqual([]);
   });
