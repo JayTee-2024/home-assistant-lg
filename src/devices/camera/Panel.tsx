@@ -58,8 +58,28 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
     if (canGoLive && liveButton.current !== null) liveButton.current.focus();
   }, [canGoLive]);
 
-  // Closing the view ends any live session.
-  useEffect(() => () => stopSession(), []);
+  // Closing the view ends any live session. So does leaving the app (the Home button, or
+  // switching input), so doorbell sound cannot carry on in the background.
+  useEffect(() => {
+    const onVisibility = () => {
+      if (!document.hidden || session.current === null) return;
+      stopSession();
+      move('stop');
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      stopSession();
+    };
+  }, []);
+
+  // When a session ends, the Sound button disappears. If it had the focus, the focus would be
+  // lost and OK would do nothing, so put it on the live button instead.
+  useEffect(() => {
+    const focused = document.activeElement;
+    const isLost = focused === null || focused === document.body;
+    if (isLost && liveButton.current !== null) liveButton.current.focus();
+  }, [state]);
 
   function stopSession() {
     if (session.current !== null) {
@@ -85,7 +105,8 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
         if (!isCurrent() || video.current === null) return;
         (video.current as HTMLVideoElement & { srcObject: MediaStream | null }).srcObject = stream;
         video.current.muted = isMutedNow.current;
-        void video.current.play();
+        // play() rejects if the session is stopped before playback starts. Nothing to do then.
+        video.current.play().catch(() => undefined);
       },
       onEvent(event: LiveEvent) {
         if (!isCurrent()) return;

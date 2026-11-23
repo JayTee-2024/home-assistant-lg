@@ -31,6 +31,9 @@ import {
 /** How long to wait for the TV's network addresses before sending the offer anyway. */
 const GATHERING_TIMEOUT_MS = 3000;
 
+/** How long a dropped link ("disconnected") may take to come back before the session counts as lost. */
+const RECONNECT_GRACE_MS = 5000;
+
 /** The parts of Chromium 53's peer connection this file uses. */
 interface PeerConnection {
   iceConnectionState: string;
@@ -89,7 +92,11 @@ function startSession(
   let isStopped = false;
   let peer: PeerConnection | null = null;
   let unsubscribe: (() => Promise<void>) | null = null;
+  let hasStream = false;
   let hasPicture = false;
+  let graceTimer: number | null = null;
+  // The camera's network candidates are added only once its answer has been applied.
+  let answerApplied: Promise<void> | null = null;
 
   // After stop(), nothing more is reported: the view has moved on.
   const report = (event: LiveEvent) => {
@@ -121,11 +128,13 @@ function startSession(
       .then(() => {
         if (isStopped) throw new Error('stopped');
         const sdp = (peer as PeerConnection).localDescription;
-        return connection.subscribeMessage<OfferEvent>(onOfferEvent, {
-          type: 'camera/webrtc/offer',
-          entity_id: entityId,
-          offer: sdp === null ? '' : sdp.sdp,
-        });
+        return connection.subscribeMessage<OfferEvent>(
+          onOfferEvent,
+          { type: 'camera/webrtc/offer', entity_id: entityId, offer: sdp === null ? '' : sdp.sdp },
+          // After a dropped socket the library would send the old offer again, and Home
+          // Assistant would start a second session with the camera. Never resend it.
+          { resubscribe: false },
+        );
       })
       .then((stopSubscription) => {
         unsubscribe = stopSubscription;
@@ -135,17 +144,41 @@ function startSession(
       .catch(() => report('refused'));
   }
 
+  // The picture counts as arrived once the stream is there and the link is up. Chromium 53
+  // hands over the stream as soon as the answer is applied, before any video can flow, so
+  // the stream on its own is not enough.
+  function pictureIfReady(connected: PeerConnection) {
+    const state = connected.iceConnectionState;
+    if (hasPicture || !hasStream || (state !== 'connected' && state !== 'completed')) return;
+    hasPicture = true;
+    report('picture');
+  }
+
   function watchPeer(connected: PeerConnection) {
     connected.onaddstream = (event) => {
       if (isStopped) return;
-      hasPicture = true;
+      hasStream = true;
       handlers.onStream(event.stream);
-      report('picture');
+      pictureIfReady(connected);
     };
     connected.oniceconnectionstatechange = () => {
       const state = connected.iceConnectionState;
-      if (state === 'failed' || state === 'disconnected' || state === 'closed') {
+      if (graceTimer !== null && state !== 'disconnected') {
+        clearTimeout(graceTimer);
+        graceTimer = null;
+      }
+      if (state === 'failed' || state === 'closed') {
         report('connection-lost');
+      } else if (state === 'disconnected') {
+        // Often only a moment's network trouble: wait to see whether it comes back.
+        if (graceTimer === null) {
+          graceTimer = setTimeout(() => {
+            graceTimer = null;
+            report('connection-lost');
+          }, RECONNECT_GRACE_MS);
+        }
+      } else {
+        pictureIfReady(connected);
       }
     };
   }
@@ -156,13 +189,21 @@ function startSession(
       RTCSessionDescription: new (init: unknown) => unknown;
       RTCIceCandidate: new (init: unknown) => unknown;
     };
+    const connected = peer;
     if (event.type === 'answer') {
-      peer
-        .setRemoteDescription(new w.RTCSessionDescription({ type: 'answer', sdp: event.answer }))
-        .catch(() => report('refused'));
+      answerApplied = connected.setRemoteDescription(
+        new w.RTCSessionDescription({ type: 'answer', sdp: event.answer }),
+      );
+      answerApplied.catch(() => report('refused'));
     } else if (event.type === 'candidate') {
-      // A candidate the TV cannot use is not fatal: another one may connect.
-      peer.addIceCandidate(new w.RTCIceCandidate(event.candidate)).catch(() => undefined);
+      const candidate = event.candidate;
+      const afterAnswer = answerApplied ?? Promise.resolve();
+      afterAnswer
+        .then(() =>
+          isStopped ? undefined : connected.addIceCandidate(new w.RTCIceCandidate(candidate)),
+        )
+        // A candidate the TV cannot use is not fatal: another one may connect.
+        .catch(() => undefined);
     } else if (event.type === 'error') {
       report('refused');
     }
@@ -181,6 +222,7 @@ function startSession(
       if (isStopped) return;
       isStopped = true;
       clearTimeout(pictureTimer);
+      if (graceTimer !== null) clearTimeout(graceTimer);
       endSubscription();
       if (peer !== null) {
         peer.onaddstream = null;

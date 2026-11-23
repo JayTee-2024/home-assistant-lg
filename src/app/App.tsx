@@ -448,9 +448,10 @@ export function App() {
           return;
         }
         // Back closes what is open; on a first screen it hands over to the TV (see back.ts).
-        // In a text field it is left alone, so the TV keyboard can close itself.
+        // While the TV keyboard is open it is left alone, so the keyboard can close itself.
+        // (A focused field is not enough to tell: the sign-in forms focus their first field.)
         if (now.overlay.kind !== 'none') closeOverlay();
-        else if (isTypingInField()) return;
+        else if (isKeyboardOpen()) return;
         else leaveToTv();
         event.preventDefault();
         return;
