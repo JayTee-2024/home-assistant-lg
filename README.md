@@ -7,22 +7,53 @@ The full design is in
 [docs/superpowers/specs/2026-11-23-home-assist-lg-design.md](docs/superpowers/specs/2026-11-23-home-assist-lg-design.md).
 Read "Readable and extendable code" there before changing anything.
 
-**Status:** early. The project builds a proof screen that tests the TV's browser engine and its route to
-Home Assistant. The real app comes next.
+**Status:** in progress. You can sign in to Home Assistant, choose devices, see them as cards on a paged
+grid, and control lights, switches, plugs, buttons, scenes and scripts with the remote; sensors show their
+readings. Heating, cameras, the "Reorganise layout" mode and the remaining device types come next.
 
 ## Folder map
 
 ```
-docs/           the design and the build plans
-scripts/        build, development server, packaging, and installing on a TV
-src/app/        where the app starts, and the base styles
-src/core/       logic with no screen code and no TV code; fully tested
-src/platform/   everything specific to the browser or the TV: polyfills, remote keys, network
-src/proof/      THROWAWAY: the TV proof screen and its tests, removed when the real app starts
-webos/          what the TV needs to know about the app: its ID, name and icons
+docs/            the design, the build plans, and what was found when the app ran on a real TV
+fixtures/        a made-up Home Assistant home, used by the tests and by the stand-in Home Assistant
+scripts/         build, development server, the stand-in Home Assistant, packaging, installing on a TV
+src/app/         where the app starts, and the one place the other folders are wired together
+src/core/        logic with no screen code and no TV code; fully tested
+src/devices/     one folder per device type (light, switch, sensor ...), each with the same files
+src/platform/    everything specific to the browser or the TV: polyfills, remote keys, network, storage
+src/screens/     what is shown: sign-in, the home screen, a device's panel, Settings
+src/test-support/  helpers for the tests; never part of the app
+webos/           what the TV needs to know about the app: its ID, name and icons
 ```
 
-This list grows as folders are added. Every source file starts with a comment saying what it is for.
+Every source file starts with a comment saying what it is for.
+
+### Layers
+
+The folders under `src` form layers, and each may import only from the ones below it:
+
+```
+app        wires everything together
+screens    uses devices and core
+devices    uses core
+core       uses nothing else in src
+platform   uses core; only app uses platform
+```
+
+So a screen never touches the TV or the network directly: `app` hands it what it needs. The linter
+enforces these rules, and `scripts/lint-rules.test.mjs` tests that it does.
+
+### Where to look
+
+| To change...                                 | Look in                                                    |
+| -------------------------------------------- | ---------------------------------------------------------- |
+| what a device type shows or sends            | `src/devices/<type>/`                                      |
+| which Home Assistant entities count as parts | `src/core/devices.ts`                                      |
+| where cards go on the grid                   | `src/core/layout.ts`                                       |
+| how the arrows move between things           | `src/core/spatial-focus.ts`, `src/screens/shared/focus.ts` |
+| the sign-in conversation with Home Assistant | `src/core/sign-in.ts`                                      |
+| what is saved on the TV                      | `src/core/saved-state.ts`                                  |
+| which screen shows when, and what a key does | `src/app/App.tsx`                                          |
 
 ## Commands
 
@@ -41,8 +72,21 @@ You need [Node.js](https://nodejs.org) 22 or newer.
 | `npm run package`      | Builds the app, runs `check:bundle`, and wraps the app into a `.ipk` file in `dist/`, the format webOS TVs install.                              |
 | `npm run deploy`       | Runs `npm run package`, then installs the package on a rooted TV and launches it. See "Install on a TV".                                         |
 
-In a desktop browser the proof screen reports "Sign-in route: helper-service". That is expected: desktop
-browsers block the sign-in request that the TV may allow. Only the result on a TV counts.
+## Run it in a browser
+
+No TV and no Home Assistant are needed to work on the app.
+
+1. `npm run dev:home` starts a stand-in Home Assistant with the made-up home from `fixtures/`.
+2. `npm run dev` builds the app and serves it at http://localhost:5173.
+3. Open that address in Chrome or Edge. The app first looks for `homeassistant.local:8123`; when that
+   fails, type `localhost:8124` as the address, then sign in as `tv` with password `tv`.
+
+On a keyboard, the arrow keys and Enter stand in for the remote, and Escape is Back. Hold Enter on a card
+to open its panel.
+
+A real Home Assistant refuses the sign-in from a desktop browser (it only accepts it from the TV app, or
+from its own pages). To use a real one from the desktop, choose "Advanced: use an access token" on the
+sign-in screen and paste a long-lived access token from your Home Assistant profile page.
 
 ## Install on a TV
 

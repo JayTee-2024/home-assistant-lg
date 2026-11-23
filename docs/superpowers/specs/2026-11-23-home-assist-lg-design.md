@@ -372,6 +372,31 @@ webOS, so the app runs in a desktop browser by swapping that one folder's implem
 4. **For other people:** install instructions and a package others can install through Homebrew Channel or
    developer mode.
 
+The foundation (stage 2) is delivered in two plans, so that a working app reaches the TV sooner:
+`docs/superpowers/plans/2026-11-23-sign-in-and-control-devices.md` (sign-in, connection, picker, grid with
+pages, storage, and light, switch, button, sensor and binary sensor), then a second plan for reorganise mode,
+climate, camera, the remaining error states and the two guides.
+
+## Decisions made while building **(my calls)**
+
+Added on 2026-11-23, during the first foundation plan. Each refines a rule above without changing its intent.
+
+- **Things with no device in the picker.** Only those of a supported type are listed, plus locks, alarms and
+  covers (so they can say "Not supported yet"). Other loose entities, such as automations, zones and people,
+  are not listed: they would bury the picker.
+- **Battery levels never lead a card.** A battery sensor is ordered after a device's other parts, whatever
+  its type, so a thermometer's card leads with the temperature.
+- **A device with no name** is named after its first entity.
+- **Colours for lights** are twelve fixed colours, and whites are five steps from warm to cool. Both work the
+  same with the arrows and the pointer; a colour wheel would need fine pointing.
+- **Moving focus.** The arrows move to the nearest thing in that direction, by position, on every screen.
+  Inside a row of controls Left and Right stay in the row.
+- **"Not supported yet" in the picker.** The row can be chosen, and choosing it shows a short message.
+- **When Home Assistant does not answer at start-up,** the app says so, retries every few seconds, and
+  offers to sign in again or change the address.
+- **Back on the home screen** does nothing yet. LG's convention for it is settled with the other finishing
+  work in the next plan.
+
 ## Left to the builder
 
 - The app's ID, icon and version scheme.
