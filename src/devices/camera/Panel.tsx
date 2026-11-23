@@ -96,17 +96,25 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
     // HAVE_CURRENT_DATA (2): a frame has been shown. Before that there is nothing worth keeping.
     if (recordingId === null || element.readyState < 2 || element.videoWidth === 0) return;
     try {
+      // DIAG: time each step, and copy a small version first.
+      diag('stop pressed, video ' + element.videoWidth + 'x' + element.videoHeight);
+      const small = document.createElement('canvas');
+      small.width = 160;
+      small.height = 160;
+      const smallDrawing = small.getContext('2d');
+      let t = Date.now();
+      if (smallDrawing !== null) smallDrawing.drawImage(element, 0, 0, 160, 160);
+      diag('small copy took ' + (Date.now() - t) + 'ms');
       const canvas = document.createElement('canvas');
       canvas.width = element.videoWidth;
       canvas.height = element.videoHeight;
       const drawing = canvas.getContext('2d');
       if (drawing === null) return;
+      t = Date.now();
       drawing.drawImage(element, 0, 0);
-      const sample = drawing.getImageData(0, 0, canvas.width, canvas.height).data;
-      let total = 0;
-      for (let i = 0; i < sample.length; i += 4 * 997) total += (sample[i] ?? 0) + (sample[i + 1] ?? 0) + (sample[i + 2] ?? 0);
-      diag('saveFrame ' + canvas.width + 'x' + canvas.height + ' ready ' + element.readyState + ' brightness ' + Math.round(total / (sample.length / (4 * 997)) / 3));
+      diag('full copy took ' + (Date.now() - t) + 'ms');
       saveLiveFrame(entityId, { image: canvas, takenAt: new Date(), recordingId });
+      diag('frame saved');
     } catch (error) {
       diag('saveFrame failed ' + String(error));
       // A frame that cannot be copied is not worth an error: the old picture stays.

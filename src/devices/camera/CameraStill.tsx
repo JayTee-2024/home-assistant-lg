@@ -63,7 +63,7 @@ function FrameCanvas({ frame }: { frame: LiveFrame }) {
     target.height = frame.image.height;
     const drawing = target.getContext('2d');
     if (drawing !== null) drawing.drawImage(frame.image, 0, 0);
-    diag('FrameCanvas drawn ' + target.width + 'x' + target.height + ' shown ' + target.clientWidth + 'x' + target.clientHeight);
+    diag('frame drawn on screen');
   }, [frame]);
 
   return <canvas ref={canvas} class="camera-picture camera-frame" />;

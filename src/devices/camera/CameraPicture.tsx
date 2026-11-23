@@ -43,7 +43,7 @@ export function CameraPicture({ entity, homeAddress, refreshMs }: CameraPictureP
     const loader = new Image();
     const started = Date.now();
     loader.onload = () => {
-      diag('picture loaded in ' + (Date.now() - started) + 'ms, refresh ' + refreshMs);
+      diag('HA picture loaded in ' + (Date.now() - started) + 'ms');
       setShown(next);
       setFailed(false);
       planNext();
