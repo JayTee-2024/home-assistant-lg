@@ -7,9 +7,10 @@ The full design is in
 [docs/superpowers/specs/2026-11-23-home-assist-lg-design.md](docs/superpowers/specs/2026-11-23-home-assist-lg-design.md).
 Read "Readable and extendable code" there before changing anything.
 
-**Status:** in progress. You can sign in to Home Assistant, choose devices, arrange them as cards on a paged
-grid, and control lights, switches, plugs, heating, buttons, scenes and scripts with the remote. Cameras
-show a still picture, and sensors show their readings. Media players, covers, fans and vacuums come next.
+**Status:** every device type in the design is in: lights, switches and plugs, heating, media players,
+blinds and other safe covers, fans, robot vacuums, cameras (still pictures), buttons, scenes and scripts,
+sensors and binary sensors. Locks, alarms, and doors, garage doors and gates are deliberately left out. Next:
+install instructions and a package for other people.
 
 To add a type of device, follow [docs/adding-a-device-type.md](docs/adding-a-device-type.md).
 

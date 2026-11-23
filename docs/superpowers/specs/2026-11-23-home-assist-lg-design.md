@@ -412,6 +412,16 @@ Added during plan 3 (`docs/superpowers/plans/2026-11-23-heating-camera-and-layou
 - **Signing out** waits up to 5 seconds for Home Assistant to cancel the sign-in, then forgets it anyway.
 - **A card for a removed device** says "Press OK to remove", and OK removes it.
 
+Added during plan 4 (`docs/superpowers/plans/2026-11-23-media-covers-fans-vacuums.md`):
+
+- **Covers are allowed only when known to be safe:** kinds `awning`, `blind`, `curtain`, `damper`, `shade`,
+  `shutter` and `window`. A cover of any other kind, or with no kind, might be a door, garage or gate, so it
+  and its whole device are "Not supported yet". Stricter than the rule above, on purpose.
+- **Volume** − and + move in 5% steps and are sent once, half a second after the last press.
+- **Fan speed** − and + move in the fan's own step, but never less than 10%.
+- **A vacuum's error** reads "Needs attention"; Return to dock stays available.
+- **A non-admin Home Assistant user** can do everything the app needs. Checked by Simon on 2026-11-23.
+
 ## Left to the builder
 
 - The app's ID, icon and version scheme.

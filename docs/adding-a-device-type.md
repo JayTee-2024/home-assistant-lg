@@ -18,13 +18,15 @@ sends it.
    - which **services** change it (`climate.set_temperature` ...) and their settings.
 2. **Decide the four things the app needs to know** (see `src/devices/device-type.ts`):
    - `mainOrder`: how important it is when a device has several parts. Lower leads the card. The current
-     values are camera 10, heating 20, light 50, switch 80, button 90, sensor 100, binary sensor 110.
+     values are camera 10, heating 20, media player 30, vacuum 40, light 50, cover 60, fan 70,
+     switch 80, button 90, sensor 100, binary sensor 110.
    - `cardSize`: `small` (1×1), `wide` (2×1) or `large` (2×2).
    - What **OK** on the card does: an everyday action (switch a light), `'open-panel'`, or `'nothing'`.
    - When it counts as **"on"**, which the card marks in amber.
 3. **Check it is safe.** Nothing that can unlock a door, disarm an alarm, or open a door, garage or gate
    may ever be controllable. `src/core/devices.ts` makes a whole device unsupported if it has such an
-   entity, and a registry test checks no type claims `lock` or `alarm_control_panel`. Keep it that way.
+   entity (for covers, any cover whose kind is not in `SAFE_COVER_KINDS`), and a registry test checks no
+   type claims `lock` or `alarm_control_panel`. Keep it that way.
 
 ## The files
 
@@ -133,8 +135,8 @@ export const climateType: DeviceType = {
 ```
 
 The icon is SVG path data on a 24×24 grid, drawn with a 2-unit line, in the style of feathericons.com.
-`supports` can refuse some entities of the right type. A future cover type must refuse door, garage and
-gate covers there.
+`supports` can refuse some entities of the right type. The cover type uses it to accept only the kinds in
+`SAFE_COVER_KINDS`.
 
 ### 6. Add one line to the registry
 
