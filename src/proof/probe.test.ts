@@ -1,17 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
+import { CLIENT_ID } from '../core/client-id';
+import type { HttpRequest } from '../platform/http';
+import type { SocketLike } from '../platform/websocket';
 import {
   buildProbes,
-  CLIENT_ID,
   decideSignInRoute,
   isProvidersAnswer,
   isSignInFormAnswer,
   PROBE_TIMEOUT_MS,
   runHttpProbe,
   runWebSocketProbe,
-  type HttpRequest,
   type ProbeOutcome,
   type ProbeResult,
-  type SocketLike,
 } from './probe';
 
 const base = 'http://192.168.1.100:8123';

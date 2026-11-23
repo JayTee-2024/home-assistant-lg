@@ -29,8 +29,9 @@ refused by Home Assistant's cross-origin check (HTTP 403). From the installed ap
 the username and password form. So webOS 4.5 does not apply that check to an installed app, and the app can
 make the sign-in requests itself. No helper service is needed, and plan 1's Task 6 is not built.
 
-**Limit of this result:** it is proven on webOS 4.5 only. Newer webOS versions use newer browser engines
-and have not been tested. If one of them applies the check, sign-in on that TV fails at "Start sign-in" and
+**Limits of this result:** it is proven on webOS 4.5 only, and only on a rooted TV with the app installed
+through the TV's developer install service. Newer webOS versions use newer browser engines and have not been
+tested, and neither has an app installed on an unrooted TV through LG's developer mode. If either case applies the check, sign-in on that TV fails at "Start sign-in" and
 the helper service described in the design is the fallback.
 
 ## Build chain: works
@@ -52,8 +53,10 @@ tests. That covers TypeScript and Preact compiled for Chromium 53, the polyfills
 | Red, Green, Yellow, Blue    | correct, per Simon | not noted           |
 | Channel up and channel down | correct, per Simon | not noted           |
 
-Simon pressed each key and reported that all of them were named correctly. A key shows its right name
-only when it sends the code listed for it in `src/platform/keys.ts`, so that table stands as written.
+Only OK's code was read from the screen. For the others, Simon was asked whether "Last key" named each one
+and answered that everything works. A key shows its right name only when it sends the code listed for it in
+`src/platform/keys.ts`, so that table stands as written. The codes for Back, the colour keys and the channel
+keys are worth one more look on the first TV run of the real app.
 
 ## Typing an address
 

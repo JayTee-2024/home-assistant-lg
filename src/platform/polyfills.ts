@@ -2,9 +2,14 @@
  * Adds the JavaScript functions that Chromium 53 (webOS TV 4.x) lacks.
  * Import this file first, before any other code runs.
  *
- * This list and the "lib" list in tsconfig.json are a pair: tsconfig lets the code use
- * exactly what Chromium 53 has plus what is added here. To use a newer function, add its
+ * This list and the "lib" list in tsconfig.json are a pair. For the JavaScript language's
+ * own functions (on Array, Object, Promise, String and so on), tsconfig lets the code use
+ * exactly what Chromium 53 has plus what is added here. To use a newer one, add its
  * polyfill here and its lib entry there, together.
+ *
+ * That pairing does not cover browser features such as AbortController or ResizeObserver.
+ * TypeScript accepts all of those whatever the TV has. The lint rule in eslint.config.mjs
+ * blocks the common ones; see the comment there.
  *
  * Newer syntax (async functions, object spread and so on) is not handled here. The build
  * rewrites syntax; see scripts/lib/build-options.mjs.

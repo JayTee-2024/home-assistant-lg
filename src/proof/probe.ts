@@ -8,11 +8,12 @@
  * that sends a request, which is what makes this file testable.
  */
 
+import { CLIENT_ID } from '../core/client-id';
+import type { HttpRequest, HttpSend } from '../platform/http';
+import type { SocketLike } from '../platform/websocket';
+
 /** How long a probe waits before giving up. */
 export const PROBE_TIMEOUT_MS = 8000;
-
-/** The fixed address the app presents to Home Assistant as its identity. It is never fetched. */
-export const CLIENT_ID = 'https://jaytee-2024.github.io/home-assistant-lg/';
 
 export type ProbeOutcome =
   /** Home Assistant answered as expected. */
@@ -33,31 +34,11 @@ export interface ProbeResult {
   detail: string;
 }
 
-export interface HttpRequest {
-  method: 'GET' | 'POST';
-  url: string;
-  jsonBody?: unknown;
-  /** True: only find out whether the server answers; the answer itself cannot be read. */
-  opaque?: boolean;
-}
-
-/** Resolves with the answer. Rejects when the browser blocks the request or nothing answers. */
-export type HttpSend = (request: HttpRequest) => Promise<{ status: number; body: string }>;
-
 export interface ProbePlan {
   reach: HttpRequest;
   providers: HttpRequest;
   startSignIn: HttpRequest;
   webSocketUrl: string;
-}
-
-/** The parts of a WebSocket the probe uses, so tests can supply a stand-in. */
-export interface SocketLike {
-  onopen: (() => void) | null;
-  onmessage: ((event: { data: string }) => void) | null;
-  onerror: (() => void) | null;
-  onclose: (() => void) | null;
-  close(): void;
 }
 
 export type SignInRoute = 'direct' | 'helper-service' | 'unreachable';

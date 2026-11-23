@@ -126,8 +126,8 @@ The same minimal app proves the build chain: compiled for Chromium 53, packaged,
 
 **Result, 2026-11-23, on the C9 (webOS 4.5):** the call succeeded from the installed app, and so did the other
 three tests. **Route chosen: `direct`.** The app makes the sign-in requests itself and no helper service is
-built. This is proven on webOS 4.5 only. If a newer TV turns out to apply the cross-origin check, the helper
-service above is the fallback. The build chain worked as well. Details are in `docs/tv-proof-results.md`.
+built. This is proven on webOS 4.5 only, on a rooted TV. If a newer TV, or an unrooted one, turns out to apply
+the cross-origin check, the helper service above is the fallback. The build chain worked as well. Details are in `docs/tv-proof-results.md`.
 
 ### Live data
 
