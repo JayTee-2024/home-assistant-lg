@@ -9,8 +9,8 @@ Read "Readable and extendable code" there before changing anything.
 
 **Status:** every device type in the design is in: lights, switches and plugs, heating, media players,
 blinds and other safe covers, fans, robot vacuums, cameras (still pictures), buttons, scenes and scripts,
-sensors and binary sensors. Locks, alarms, and doors, garage doors and gates are deliberately left out. Next:
-install instructions and a package for other people.
+sensors and binary sensors. Locks, alarms, and doors, garage doors and gates are deliberately left out. Version 1.0.0 is the first
+for other people: see [docs/install.md](docs/install.md) to install it, and [CHANGELOG.md](CHANGELOG.md).
 
 To add a type of device, follow [docs/adding-a-device-type.md](docs/adding-a-device-type.md).
 
@@ -73,7 +73,8 @@ You need [Node.js](https://nodejs.org) 22 or newer.
 | `npm run build`        | Builds the app once into `dist/app`, the folder that goes on the TV.                                                                             |
 | `npm run check:bundle` | Confirms the built JavaScript uses no syntax newer than the oldest supported TV understands. Run after `npm run build`.                          |
 | `npm run package`      | Builds the app, runs `check:bundle`, and wraps the app into a `.ipk` file in `dist/`, the format webOS TVs install.                              |
-| `npm run deploy`       | Runs `npm run package`, then installs the package on a rooted TV and launches it. See "Install on a TV".                                         |
+| `npm run release`      | Runs `npm run package`, then prepares a release in `dist/release/` and `webosbrew/apps.json`. See [docs/releasing.md](docs/releasing.md).        |
+| `npm run deploy`       | Runs `npm run package`, then installs the package on a rooted TV and launches it. See "Install from your own folder".                            |
 
 ## Run it in a browser
 
@@ -92,11 +93,13 @@ A real Home Assistant refuses the sign-in from a desktop browser (it only accept
 from its own pages). To use a real one from the desktop, type its address, choose "Advanced: use an
 access token" under the address field and paste a long-lived access token from your Home Assistant profile page.
 
-## Install on a TV
+## Install from your own folder (developers)
+
+To install a released version, follow [docs/install.md](docs/install.md) instead.
 
 This is the development route. It needs a TV that is rooted with
 [Homebrew Channel](https://www.webosbrew.org) and has its SSH server switched on, because it signs in to
-the TV as root. Installing on an ordinary TV will be covered separately.
+the TV as root.
 
 1. Copy `.env.local.example` to `.env.local`.
 2. In `.env.local`, set `TV_HOST` to the TV's address and `TV_SSH_KEY` to the full path of the private SSH

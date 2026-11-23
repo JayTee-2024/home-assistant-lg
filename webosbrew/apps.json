@@ -15,17 +15,17 @@
       "manifestUrl": "https://github.com/JayTee-2024/home-assistant-lg/releases/latest/download/net.badacid.homeassistlg.manifest.json",
       "manifest": {
         "id": "net.badacid.homeassistlg",
-        "version": "0.4.0",
+        "version": "1.0.0",
         "type": "web",
         "title": "Home Assist LG",
         "appDescription": "Control your Home Assistant home with the TV remote.",
         "iconUri": "https://raw.githubusercontent.com/JayTee-2024/home-assistant-lg/main/webos/largeIcon.png",
         "sourceUrl": "https://github.com/JayTee-2024/home-assistant-lg",
         "rootRequired": false,
-        "ipkUrl": "https://github.com/JayTee-2024/home-assistant-lg/releases/download/v0.4.0/net.badacid.homeassistlg_0.4.0_all.ipk",
-        "ipkSize": 48758,
+        "ipkUrl": "https://github.com/JayTee-2024/home-assistant-lg/releases/download/v1.0.0/net.badacid.homeassistlg_1.0.0_all.ipk",
+        "ipkSize": 48766,
         "ipkHash": {
-          "sha256": "89d6e570d6ad16a6d939d8a3cd095c8662bf2e0d29071c69b5217635d5e6c7d5"
+          "sha256": "21ef46dd6a53094d07c555cc66067673f2d8ce9f02486844a837a061291fd5a3"
         }
       },
       "pool": "main",
