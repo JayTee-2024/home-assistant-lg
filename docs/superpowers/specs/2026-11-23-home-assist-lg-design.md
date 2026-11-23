@@ -1,7 +1,7 @@
 # Home Assist LG: design
 
 **Date:** 2026-11-23
-**Status:** draft for Simon's review
+**Status:** approved by Simon on 2026-11-23
 **Screen mockups:** https://claude.ai/artifact/WEjm2aL8jkdRvpdZCVX4i9 (five screens at 1920×1080; Simon approved these as the baseline)
 
 Lines marked **(my call)** are decisions Claude made that Simon has not explicitly agreed to. Everything else
