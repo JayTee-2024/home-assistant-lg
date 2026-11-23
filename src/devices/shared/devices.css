@@ -1,0 +1,98 @@
+/*
+ * Styles shared by every device type: the inside of a card ("face") and the rows and
+ * buttons of a panel. The card's frame is styled in src/screens/home/home.css.
+ *
+ * Sizes are in rem: 1rem is 1/120 of the screen width (see src/app/app.css).
+ */
+
+/* ---- The inside of a card ---- */
+
+.face {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  flex: 1;
+  min-height: 0;
+}
+
+.face-state {
+  font-size: 2.25rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.face-detail {
+  display: flex;
+  align-items: center;
+  margin-top: 0.25rem;
+  font-size: 1.5rem;
+  opacity: 0.8;
+}
+
+.face-dot {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-right: 0.6rem;
+  border-radius: 50%;
+  border: 0.125rem solid rgba(0, 0, 0, 0.25);
+}
+
+/* ---- A panel's rows and buttons ---- */
+
+.panel-row {
+  display: flex;
+  align-items: center;
+  padding: 0.9rem 0;
+  border-top: 0.0625rem solid #2a313c;
+}
+
+.panel-row-label {
+  flex: none;
+  width: 14rem;
+  color: #a7b0bd;
+}
+
+.panel-row-controls {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.control {
+  min-width: 4.5rem;
+  height: 4rem;
+  margin: 0.35rem 0.7rem 0.35rem 0;
+  padding: 0 1.5rem;
+  border: 0;
+  border-radius: 0.9rem;
+  background: #232a34;
+  color: #f2f4f7;
+  font: inherit;
+}
+
+.control:disabled {
+  opacity: 0.4;
+}
+
+.control-selected {
+  background: #ffb454;
+  color: #1a1206;
+  font-weight: 600;
+}
+
+.control-swatch {
+  width: 4rem;
+  min-width: 0;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.panel-value {
+  min-width: 6rem;
+  margin-right: 0.7rem;
+  text-align: center;
+  font-size: 1.75rem;
+  font-weight: 600;
+}
