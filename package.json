@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Control a Home Assistant home from an LG webOS TV.",
+  "license": "Apache-2.0",
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit",

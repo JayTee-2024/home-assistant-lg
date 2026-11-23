@@ -127,3 +127,8 @@ Three checks guard this, and each covers one thing only:
 
 No check covers every browser feature. Before using one that this project does not use yet, look it up for
 Chrome 53 on [caniuse.com](https://caniuse.com) and try it on a TV.
+
+## Licence
+
+Copyright 2026 Simon. Licensed under the [Apache License, Version 2.0](LICENSE): you may use, change and
+share this code, including in other projects, as long as you keep the licence and copyright notices.

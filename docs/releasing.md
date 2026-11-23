@@ -14,9 +14,7 @@ before the first one.
 
 ## Before the first release
 
-1. Choose a licence and add a `LICENSE` file. Without one, nobody may legally reuse the code, and
-   webosbrew's main list only accepts open-source apps.
-2. Make the GitHub repository public (**Settings**, then **General**, then **Change visibility** at the
+1. Make the GitHub repository public (**Settings**, then **General**, then **Change visibility** at the
    bottom). Every link in [install.md](install.md), the app's icon and the downloads only work once it is
    public.
 
