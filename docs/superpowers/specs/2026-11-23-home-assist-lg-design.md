@@ -27,6 +27,7 @@ lights, heating, speakers and plugs through Simon's own backend.
 - Arrange the cards: a "Reorganise layout" mode moves each card to a chosen place on the grid.
 - Work on any TV size (assume 32 inches as the smallest) by scaling, with no size-specific layouts.
 - Work for other people with no server of Simon's and no rooted TV.
+- Code a person can read, support and extend without help. See "Readable and extendable code".
 
 ## Non-goals (first version)
 
@@ -154,7 +155,10 @@ Rules **(my call)**:
 - A device with no supported part shows "Not supported yet" in the picker and cannot be added.
 - Things with no device (scenes, scripts, helpers, loose entities) are listed in the picker under their room
   as items of their own, each with its own card.
-- Names and rooms come from Home Assistant.
+- When a device has several parts of its main type (a two-channel dimmer, say), the card controls the first
+  by name and the panel shows them all.
+- Names and rooms come from Home Assistant. Devices with no room are grouped under "No room".
+- The picker is a list that scrolls when there are more devices than fit.
 
 ### Supported types (first version)
 
@@ -212,7 +216,8 @@ Type and controls are sized for reading from a sofa. Sizes scale with the screen
 
 - The grid is 6 columns by 3 rows **(my call)**.
 - Simon chose pages: each page is a full screen, flipped left and right like a phone's home screen. A row
-  of dots shows which page is open **(my call)**.
+  of dots shows which page is open, and arrow buttons at the left and right edges flip pages with the
+  pointer **(my call)**.
 - A newly added device goes in the first free place that fits it, on a new page if needed **(my call)**.
 - Removing a device in the picker removes its card and leaves the gap.
 
@@ -272,23 +277,89 @@ A second TV is set up separately.
 - **Language and UI:** TypeScript and Preact.
 - **Build target:** Chromium 53. The exact bundler and settings are the builder's choice.
 - **Layout:** no CSS grid. Cards are placed by the app from their grid coordinates.
-- **Structure:** the logic is separate from the screens, as in `echo-show-assistant`:
-  - *core*: Home Assistant data to devices, parts and cards; what each entity supports; the layout and page
-    rules; the focus-movement rules. No screen code. Covered by automated tests.
-  - *screens*: Preact components for the cards, panels and pages.
-  - *platform*: remote keys, the pointer, closing the app, storage, and the sign-in route chosen by the first
-    step.
+- **Structure:** see "Readable and extendable code" below.
 - **Development:** in a desktop browser against a real Home Assistant, with regular checks on the C9. The
   desktop browser applies the cross-origin check, so development sign-in uses the token fallback or a local
   proxy.
 - **Delivery:** an installable `.ipk` package. Simon's C9 is rooted with Homebrew Channel and has root SSH,
   which is the install route during development.
 
+## Readable and extendable code
+
+Simon's requirement: the code must be easy for a person to read and support, and laid out logically so a
+person can extend it. The reader to write for is a developer who knows C# and Angular and has never seen
+this codebase. The rules below are how the requirement is met **(my call)**; the builder may adjust the
+details but not the intent.
+
+### One folder per device type
+
+Adding a device type is the most likely extension, so it gets a fixed recipe. Every supported type is a
+folder under `src/devices/`, and every folder has the same files:
+
+```
+src/devices/light/
+  index.ts        the type's definition: which Home Assistant types it covers, its place in the
+                  main-part order, its card size, and what OK does
+  model.ts        reads a Home Assistant entity into a typed view of what the card shows and what
+                  the entity supports
+  actions.ts      turns each user action into a Home Assistant service call
+  Card.tsx        the card
+  Panel.tsx       the panel
+  light.test.ts   tests for model and actions, using sample entities recorded from a real
+                  Home Assistant
+```
+
+- One registry file lists the device types. Adding a type is: copy a folder, fill it in, add one line to
+  the registry. The picker, the card size, the OK action and "Not supported yet" all follow from the
+  registry, so nothing else changes.
+- A single `DeviceType` interface states what every type must provide, with a comment on each member.
+- Tiny types that share a panel (`switch` and `input_boolean`; `scene`, `script` and `button`) share a folder.
+
+### Layers that only depend downwards
+
+```
+src/
+  core/       Home Assistant data to devices, parts and cards; layout and page rules; focus-movement
+              rules. No screen code and no TV code. Fully covered by tests.
+  devices/    one folder per device type, as above
+  screens/    home, settings, sign-in, the panel overlay, reorganise mode
+  platform/   everything specific to the TV or the browser: remote keys, pointer, closing the app,
+              storage, the sign-in route. Each behind a small interface.
+  app/        start-up and wiring
+```
+
+`core` imports nothing from the other folders. `devices` and `screens` use `core`. Only `platform` touches
+webOS, so the app runs in a desktop browser by swapping that one folder's implementations.
+
+### Rules for every file
+
+- **Plain over clever.** Straightforward code a newcomer can follow. No metaprogramming, no deep generics,
+  no abstractions with a single user.
+- **Names say what things are.** Full words, the same word for the same thing everywhere (device, part,
+  card, panel, page), matching this document.
+- **Small files with one job.** A file that needs scrolling to understand gets split.
+- **A header comment on every file** saying what it is for and what it does not do.
+- **Comments explain why,** above all for Home Assistant quirks and old-browser workarounds, with a link
+  to the relevant Home Assistant documentation.
+- **Typed data.** Home Assistant entities and attributes are described in one place. No `any`. Strict
+  TypeScript settings.
+- **Few dependencies.** Preact and the Home Assistant connection library, plus build and test tools.
+  Every addition is something a maintainer must learn.
+- **One formatter and one linter,** run by a single command, so style is never a judgement call.
+
+### Documents in the repository
+
+- **README:** what the app is, a map of the folders, and how to build, run in a browser, test, package
+  and install on a TV.
+- **"Adding a device type":** a step-by-step walkthrough that follows the recipe above with a worked example.
+- **This design document,** kept current when a decision changes.
+
 ## Order of work **(my call)**
 
 1. **First step:** the sign-in test and build-chain proof on the C9.
 2. **Foundation:** sign-in, connection, picker, grid with pages, reorganise, storage, error states, and the
-   panels for Simon's own devices: light, switch, climate, camera, sensor, binary sensor, button.
+   panels for Simon's own devices: light, switch, climate, camera, sensor, binary sensor, button. The README
+   and the "Adding a device type" guide are written here, once the first few types exist to describe.
 3. **Remaining panels:** media player, cover, fan, scene and script, vacuum.
 4. **For other people:** install instructions and a package others can install through Homebrew Channel or
    developer mode.
