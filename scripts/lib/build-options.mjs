@@ -1,10 +1,11 @@
-// The esbuild settings shared by the one-off build (build.mjs) and the development
-// server (dev.mjs), so the two can never drift apart.
+// The esbuild settings for the one-off build (build.mjs) and the development server
+// (dev.mjs). Both start from the same shared settings, so the two can never drift apart.
 
 /** Where the built app goes. Everything in this folder ends up on the TV. */
 export const OUTPUT_FOLDER = 'dist/app';
 
-export const buildOptions = {
+/** Settings both builds share. */
+const sharedOptions = {
   entryPoints: ['src/app/main.tsx'],
   outfile: OUTPUT_FOLDER + '/app.js',
   bundle: true,
@@ -18,6 +19,11 @@ export const buildOptions = {
 
   jsx: 'automatic',
   jsxImportSource: 'preact',
-  sourcemap: 'linked',
   logLevel: 'info',
 };
+
+/** The build that goes into the TV package: minified, and without source maps to keep the package small. */
+export const releaseBuildOptions = { ...sharedOptions, minify: true, sourcemap: false };
+
+/** The development server's build: source maps so browser errors point at the TypeScript files. */
+export const devBuildOptions = { ...sharedOptions, sourcemap: 'linked' };

@@ -3,14 +3,14 @@
 // Run with: npm run dev
 
 import { context } from 'esbuild';
-import { buildOptions, OUTPUT_FOLDER } from './lib/build-options.mjs';
+import { devBuildOptions, OUTPUT_FOLDER } from './lib/build-options.mjs';
 import { copyStaticFiles } from './lib/copy-static.mjs';
 
 const PORT = 5173;
 
 copyStaticFiles();
 
-const builder = await context(buildOptions);
+const builder = await context(devBuildOptions);
 await builder.watch();
 await builder.serve({ servedir: OUTPUT_FOLDER, port: PORT });
 
