@@ -24,6 +24,7 @@ import {
 import type { PanelProps } from '../device-type';
 import { CameraStill } from './CameraStill';
 import { saveLiveFrame } from './live-frames';
+import { diag } from './diag';
 import { cameraControls, readCamera } from './model';
 
 /** How often the still picture is fetched again: quick, since someone is looking at it. */
@@ -101,13 +102,19 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
       const drawing = canvas.getContext('2d');
       if (drawing === null) return;
       drawing.drawImage(element, 0, 0);
+      const sample = drawing.getImageData(0, 0, canvas.width, canvas.height).data;
+      let total = 0;
+      for (let i = 0; i < sample.length; i += 4 * 997) total += (sample[i] ?? 0) + (sample[i + 1] ?? 0) + (sample[i + 2] ?? 0);
+      diag('saveFrame ' + canvas.width + 'x' + canvas.height + ' ready ' + element.readyState + ' brightness ' + Math.round(total / (sample.length / (4 * 997)) / 3));
       saveLiveFrame(entityId, { image: canvas, takenAt: new Date(), recordingId });
-    } catch {
+    } catch (error) {
+      diag('saveFrame failed ' + String(error));
       // A frame that cannot be copied is not worth an error: the old picture stays.
     }
   }
 
   function stopSession() {
+    diag('stopSession, state ' + stateNow.current);
     if (session.current !== null) {
       session.current.stop();
       session.current = null;
@@ -169,13 +176,16 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
   return (
     <div class="camera-view">
       <CameraStill entity={entity} homeAddress={homeAddress} refreshMs={PANEL_REFRESH_MS} />
-      {/* Always in the page, so the stream has somewhere to go; shown only once it plays. */}
-      <video
-        ref={video}
-        class={'camera-live' + (state === 'playing' ? '' : ' camera-live-hidden')}
-        autoPlay
-        muted
-      />
+      {/* In the page only while live: on the TV a video player left in the page keeps the
+          screen black for a while after it stops. Shown only once the picture plays. */}
+      {(state === 'connecting' || state === 'playing') && (
+        <video
+          ref={video}
+          class={'camera-live' + (state === 'playing' ? '' : ' camera-live-hidden')}
+          autoPlay
+          muted
+        />
+      )}
 
       {canGoLive && (
         <div class="camera-actions">
