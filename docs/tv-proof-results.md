@@ -44,13 +44,21 @@ tests. That covers TypeScript and Preact compiled for Chromium 53, the polyfills
 
 ## Remote keys
 
-| Key                         | Name shown | Code |
-| --------------------------- | ---------- | ---- |
-| Up, Down, Left, Right       | correct    | not yet recorded |
-| OK                          | ok         | 13   |
-| Back                        | not yet recorded | |
-| Red, Green, Yellow, Blue    | not yet recorded | |
-| Channel up and channel down | not yet recorded | |
+| Key                         | Name shown         | Code                |
+| --------------------------- | ------------------ | ------------------- |
+| OK                          | ok                 | 13 (from the photo) |
+| Up, Down, Left, Right       | correct, per Simon | not noted           |
+| Back                        | correct, per Simon | not noted           |
+| Red, Green, Yellow, Blue    | correct, per Simon | not noted           |
+| Channel up and channel down | correct, per Simon | not noted           |
+
+Simon pressed each key and reported that all of them were named correctly. A key shows its right name
+only when it sends the code listed for it in `src/platform/keys.ts`, so that table stands as written.
+
+## Typing an address
+
+The TV's on-screen keyboard appeared for the address box and typed the full address. Simon reported it
+works well. The real sign-in screen can rely on it.
 
 ## Found while testing
 
@@ -67,7 +75,5 @@ tests. That covers TypeScript and Preact compiled for Chromium 53, the polyfills
 
 ## Still to check
 
-- The "Last key" line for Back, the four colour keys, and channel up and down.
-- How the address was typed. The photo shows the full address in the box, so typing works. Still to
-  confirm: that it was the TV's on-screen keyboard, and how usable it was.
-- Whether "Close app" leaves the app completely.
+- Whether "Close app" leaves the app completely. After Simon's report the TV still listed the app as
+  running and in the foreground, so it is not confirmed either way.
