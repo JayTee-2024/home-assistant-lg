@@ -22,10 +22,11 @@ before the first one.
 
 ## Steps
 
-1. Set the new version in `package.json` (only there: the build copies it everywhere else, including the
-   Settings screen). Use `major.minor.patch`, such as `1.1.0`.
+1. Set the new version with `npm version 1.1.0 --no-git-tag-version` (with your version number, in
+   `major.minor.patch` form). This updates `package.json` and `package-lock.json` together; the build
+   copies the version everywhere else, including the Settings screen.
 2. Add an entry at the top of [CHANGELOG.md](../CHANGELOG.md).
-3. Run `npm run check`. (On a fresh clone, run `npm install` once first, or nothing will build.)
+3. Run `npm run check`. (On a fresh clone, run `npm ci` once first, or nothing will build.)
 4. Optional, but worth doing: test on your own TV (next section). Do it now, before step 5.
 5. Run `npm run release`. It prints what it made:
    - `dist/release/net.badacid.homeassistlg_<version>_all.ipk`

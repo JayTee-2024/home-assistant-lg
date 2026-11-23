@@ -64,7 +64,7 @@ You need [Node.js](https://nodejs.org) 22 or newer.
 
 | Command                | What it does                                                                                                                                     |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `npm install`          | Downloads the tools. Run once after cloning.                                                                                                     |
+| `npm ci`               | Downloads the tools, exactly the versions in `package-lock.json`. Run once after cloning, and again after pulling a change to it.                |
 | `npm run check`        | Runs the formatting check, the linter, the type check and the tests. Run before every commit.                                                    |
 | `npm run test`         | Runs the tests only.                                                                                                                             |
 | `npm run format`       | Rewrites files to the project's formatting.                                                                                                      |
