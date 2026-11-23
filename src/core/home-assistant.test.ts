@@ -9,6 +9,9 @@ import {
   hasFeature,
   isAvailable,
   readNumber,
+  readRegistryAreas,
+  readRegistryDevices,
+  readRegistryEntities,
   readText,
   readTextList,
 } from './home-assistant';
@@ -98,5 +101,100 @@ describe('the sample home', () => {
     );
 
     expect(loose.sort()).toEqual(['scene.movie_night', 'script.goodnight', 'sun.sun']);
+  });
+});
+
+describe('reading the registries', () => {
+  it('keeps the fields the app uses from entity registry entries', () => {
+    const entries = readRegistryEntities([
+      {
+        entity_id: 'light.a',
+        device_id: 'dev1',
+        area_id: null,
+        disabled_by: null,
+        hidden_by: 'user',
+        entity_category: 'diagnostic',
+        name: 'Lamp',
+        original_name: 'LIFX A19',
+        platform: 'lifx',
+        unique_id: 'abc',
+      },
+    ]);
+
+    expect(entries).toEqual([
+      {
+        entity_id: 'light.a',
+        device_id: 'dev1',
+        area_id: null,
+        disabled_by: null,
+        hidden_by: 'user',
+        entity_category: 'diagnostic',
+        name: 'Lamp',
+        original_name: 'LIFX A19',
+      },
+    ]);
+  });
+
+  it('fills missing or wrongly typed fields with null, and drops entries with no id', () => {
+    expect(
+      readRegistryEntities([
+        { entity_id: 'light.a', device_id: 7 },
+        { name: 'no id' },
+        'text',
+        null,
+      ]),
+    ).toEqual([
+      {
+        entity_id: 'light.a',
+        device_id: null,
+        area_id: null,
+        disabled_by: null,
+        hidden_by: null,
+        entity_category: null,
+        name: null,
+        original_name: null,
+      },
+    ]);
+  });
+
+  it('reads devices, including ones that carry fewer fields than usual', () => {
+    expect(
+      readRegistryDevices([
+        {
+          id: 'dev1',
+          name: 'Lamp',
+          name_by_user: 'Lounge lamp',
+          area_id: 'living',
+          disabled_by: null,
+        },
+        { id: 'child1', name: 'Child zone' },
+        { name: 'no id' },
+      ]),
+    ).toEqual([
+      {
+        id: 'dev1',
+        name: 'Lamp',
+        name_by_user: 'Lounge lamp',
+        area_id: 'living',
+        disabled_by: null,
+      },
+      { id: 'child1', name: 'Child zone', name_by_user: null, area_id: null, disabled_by: null },
+    ]);
+  });
+
+  it('reads areas and drops ones with no id or name', () => {
+    expect(
+      readRegistryAreas([
+        { area_id: 'living', name: 'Living room', icon: null },
+        { area_id: 'x' },
+        {},
+      ]),
+    ).toEqual([{ area_id: 'living', name: 'Living room' }]);
+  });
+
+  it('gives an empty list for anything that is not a list', () => {
+    expect(readRegistryEntities(null)).toEqual([]);
+    expect(readRegistryDevices('nope')).toEqual([]);
+    expect(readRegistryAreas({})).toEqual([]);
   });
 });

@@ -103,3 +103,70 @@ export function hasFeature(entity: EntityState, bit: number): boolean {
   const features = readNumber(entity, 'supported_features') ?? 0;
   return (features & bit) !== 0;
 }
+
+/**
+ * The three functions below turn the registry lists Home Assistant sends into the typed
+ * shapes above. They keep only the fields the app uses. A missing or wrongly typed field
+ * becomes null, and an entry with no id is dropped, so newer Home Assistant versions that
+ * add fields, or send entries with fewer of them, cannot break the app.
+ */
+export function readRegistryEntities(value: unknown): RegistryEntity[] {
+  const entries: RegistryEntity[] = [];
+  for (const item of asRecords(value)) {
+    const entityId = item['entity_id'];
+    if (typeof entityId !== 'string') continue;
+
+    entries.push({
+      entity_id: entityId,
+      device_id: textOrNull(item['device_id']),
+      area_id: textOrNull(item['area_id']),
+      disabled_by: textOrNull(item['disabled_by']),
+      hidden_by: textOrNull(item['hidden_by']),
+      entity_category: textOrNull(item['entity_category']),
+      name: textOrNull(item['name']),
+      original_name: textOrNull(item['original_name']),
+    });
+  }
+  return entries;
+}
+
+export function readRegistryDevices(value: unknown): RegistryDevice[] {
+  const devices: RegistryDevice[] = [];
+  for (const item of asRecords(value)) {
+    const id = item['id'];
+    if (typeof id !== 'string') continue;
+
+    devices.push({
+      id,
+      name: textOrNull(item['name']),
+      name_by_user: textOrNull(item['name_by_user']),
+      area_id: textOrNull(item['area_id']),
+      disabled_by: textOrNull(item['disabled_by']),
+    });
+  }
+  return devices;
+}
+
+export function readRegistryAreas(value: unknown): RegistryArea[] {
+  const areas: RegistryArea[] = [];
+  for (const item of asRecords(value)) {
+    const areaId = item['area_id'];
+    const name = item['name'];
+    if (typeof areaId !== 'string' || typeof name !== 'string') continue;
+
+    areas.push({ area_id: areaId, name });
+  }
+  return areas;
+}
+
+/** The objects in a list, skipping anything in it that is not an object. Empty when `value` is not a list. */
+function asRecords(value: unknown): Array<{ [name: string]: unknown }> {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (item): item is { [name: string]: unknown } => typeof item === 'object' && item !== null,
+  );
+}
+
+function textOrNull(value: unknown): string | null {
+  return typeof value === 'string' ? value : null;
+}
