@@ -363,3 +363,54 @@ describe('the other device types', () => {
     expect(callAndRead('vacuum', 'return_to_base', 'vacuum.robot').entity.state).toBe('returning');
   });
 });
+
+describe('live camera video', () => {
+  it('offers WebRTC for cameras, and nothing for other entities', () => {
+    const { socket, received } = openSignedInSocket(createFakeHome(sampleHome));
+
+    socket.receive({ id: 5, type: 'camera/capabilities', entity_id: 'camera.front_door' });
+    socket.receive({ id: 6, type: 'camera/capabilities', entity_id: 'light.lounge_lamp' });
+
+    expect(received[2]).toEqual({
+      id: 5,
+      type: 'result',
+      success: true,
+      result: { frontend_stream_types: ['web_rtc'], two_way_audio: false },
+    });
+    expect(received[3].success).toBe(false);
+  });
+
+  it('gives a client configuration with no ICE servers', () => {
+    const { socket, received } = openSignedInSocket(createFakeHome(sampleHome));
+
+    socket.receive({
+      id: 7,
+      type: 'camera/webrtc/get_client_config',
+      entity_id: 'camera.front_door',
+    });
+
+    expect(received[2].result).toEqual({ configuration: { iceServers: [] } });
+  });
+
+  it('accepts an offer, then reports that it has no live video to send', () => {
+    const { socket, received } = openSignedInSocket(createFakeHome(sampleHome));
+
+    socket.receive({
+      id: 8,
+      type: 'camera/webrtc/offer',
+      entity_id: 'camera.front_door',
+      offer: 'v=0',
+    });
+
+    expect(received[2]).toEqual({ id: 8, type: 'result', success: true, result: null });
+    expect(received[3]).toEqual({
+      id: 8,
+      type: 'event',
+      event: {
+        type: 'error',
+        code: 'webrtc_offer_failed',
+        message: 'The stand-in home has no live video.',
+      },
+    });
+  });
+});

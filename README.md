@@ -8,7 +8,7 @@ The full design is in
 Read "Readable and extendable code" there before changing anything.
 
 **Status:** every device type in the design is in: lights, switches and plugs, heating, media players,
-blinds and other safe covers, fans, robot vacuums, cameras (still pictures), buttons, scenes and scripts,
+blinds and other safe covers, fans, robot vacuums, cameras (still pictures, and live video where Home Assistant offers it), buttons, scenes and scripts,
 sensors and binary sensors. Locks, alarms, and doors, garage doors and gates are deliberately left out. Version 1.0.0 is the first
 for other people: see [docs/install.md](docs/install.md) to install it, and [CHANGELOG.md](CHANGELOG.md).
 

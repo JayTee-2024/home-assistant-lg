@@ -212,6 +212,30 @@ export function createFakeHome(sampleHome, cameraPicture = readFileSync(CAMERA_P
           }
           return;
         }
+        // Live camera video. The stand-in offers WebRTC for its cameras but has no video to
+        // send, so an offer always ends in an error event, as a camera that cannot start would.
+        case 'camera/capabilities':
+          if (String(message.entity_id).indexOf('camera.') === 0) {
+            result(message.id, { frontend_stream_types: ['web_rtc'], two_way_audio: false });
+          } else {
+            failure(message.id, 'home_assistant_error', 'Not a camera.');
+          }
+          return;
+        case 'camera/webrtc/get_client_config':
+          result(message.id, { configuration: { iceServers: [] } });
+          return;
+        case 'camera/webrtc/offer':
+          result(message.id, null);
+          sendToClient({
+            id: message.id,
+            type: 'event',
+            event: {
+              type: 'error',
+              code: 'webrtc_offer_failed',
+              message: 'The stand-in home has no live video.',
+            },
+          });
+          return;
         default:
           failure(message.id, 'unknown_command', 'Unknown command.');
       }

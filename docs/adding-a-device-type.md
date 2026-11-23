@@ -113,6 +113,11 @@ entity says it supports. Run actions with the `run` prop.
 If a control should not send on every press (heating's − and +), use `createDebouncer` from
 `src/core/debounce.ts` and send once after the presses stop.
 
+Most panels sit in the popup box with the device's other parts. A type whose panel should fill the screen
+sets `panelLayout: 'full-screen'` in its `index.ts`: when it is the device's main part, its `Panel` gets
+the whole screen and the device's name, its other parts and the close button go in a bar across the top.
+The camera does this (`src/devices/camera/Panel.tsx`), and also uses the `liveVideo` prop for live video.
+
 ### 5. Describe the type: `index.ts`
 
 A shortened version of the real file (the real `isActive` and `summary` say a little more):

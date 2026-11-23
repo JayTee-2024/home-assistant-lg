@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.0
+
+- Cameras open full screen: the picture fills the screen's height, with the name, the room and the
+  device's other parts (such as a doorbell's motion sensor and battery) in a bar across the top.
+- **Watch live** plays a camera live, where Home Assistant offers live video for it (WebRTC). Tested
+  with a Ring doorbell. Sound starts off; **Sound on** switches it on. Closing the view ends the live
+  session, and **Watch again** starts a new one after Ring ends it.
+- Back on the sign-in screen steps back a form instead of leaving the app.
+
 ## 1.0.0 — 2026-11-23
 
 The first version for other people. Install it with [docs/install.md](docs/install.md).

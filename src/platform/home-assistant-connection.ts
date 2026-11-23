@@ -35,6 +35,7 @@ import {
 } from '../core/home-assistant';
 import type { ConnectionStatus, HomeConnection, OpenFailure } from '../core/home-connection';
 import type { SavedSignIn } from '../core/saved-state';
+import { createLiveVideoSource } from './live-video';
 
 /** How long the first full picture of the home may take before the attempt counts as failed. */
 const FIRST_LOAD_TIMEOUT_MS = 20000;
@@ -215,6 +216,8 @@ function loadHome(connection: Connection, auth: Auth): Promise<HomeConnection> {
         },
       );
     },
+
+    liveVideo: createLiveVideoSource(connection),
 
     signOut() {
       const revoked =

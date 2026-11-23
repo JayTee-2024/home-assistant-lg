@@ -1,26 +1,36 @@
 /**
- * A device's panel: a large box over the home screen with every control the device has.
+ * A device's panel, with every control the device has. Back, or the close button, closes it.
  *
- * It shows one section per part of the device, each drawn by that part's device type
- * (its Panel component). Back, or the close button, closes it.
+ * Two layouts, chosen by the device type of the device's main part (its `panelLayout`):
+ *   box          a large box over the home screen, one section per part of the device,
+ *                each drawn by that part's device type (its Panel component)
+ *   full-screen  the main part's Panel fills the screen (a camera's picture); a see-through
+ *                bar across the top holds the name, the room, a line about the other parts,
+ *                and the close button
  */
 
 import { useEffect } from 'preact/hooks';
 import type { Device } from '../../core/devices';
 import type { HomeSnapshot } from '../../core/home-assistant';
+import type { LiveVideoSource } from '../../core/live-video';
 import type { Action } from '../../devices/device-type';
 import { deviceTypeFor } from '../../devices/registry';
 import { focusFirst, topScope } from '../shared/focus';
 import { CLOSE_ICON, Icon } from '../shared/Icon';
+import { otherPartLines } from '../shared/part-lines';
 
 export interface PanelOverlayProps {
   device: Device;
   home: HomeSnapshot;
   /** The Home Assistant address, for things fetched from it directly, such as camera pictures. */
   homeAddress: string;
+  liveVideo: LiveVideoSource;
   onRun(action: Action): void;
   onClose(): void;
 }
+
+/** How many of the other parts the full-screen bar mentions. */
+const FULL_SCREEN_PART_LINES = 4;
 
 export function PanelOverlay(props: PanelOverlayProps) {
   const { device, home } = props;
@@ -29,6 +39,11 @@ export function PanelOverlay(props: PanelOverlayProps) {
   useEffect(() => {
     focusFirst(topScope());
   }, []);
+
+  const mainType = device.mainPart === null ? null : deviceTypeFor(device.mainPart.typeId);
+  if (mainType !== null && mainType.panelLayout === 'full-screen') {
+    return <FullScreenPanel {...props} />;
+  }
 
   return (
     <div class="overlay">
@@ -50,16 +65,59 @@ export function PanelOverlay(props: PanelOverlayProps) {
               {device.parts.length > 1 && part.name !== device.name && (
                 <h2 class="panel-part-name">{part.name}</h2>
               )}
-              <PartPanel entity={entity} homeAddress={props.homeAddress} run={props.onRun} />
+              <PartPanel
+                entity={entity}
+                homeAddress={props.homeAddress}
+                run={props.onRun}
+                liveVideo={props.liveVideo}
+              />
             </section>
           );
         })}
 
-        {/* Last in the page so the first control, not this button, takes focus; drawn top right. */}
-        <button class="icon-button panel-close" aria-label="Close" onClick={props.onClose}>
-          <Icon path={CLOSE_ICON} />
-        </button>
+        <CloseButton onClose={props.onClose} />
       </div>
     </div>
+  );
+}
+
+function FullScreenPanel(props: PanelOverlayProps) {
+  const { device, home } = props;
+  const main = device.mainPart;
+  const type = main === null ? null : deviceTypeFor(main.typeId);
+  const entity = main === null ? undefined : home.states[main.entityId];
+  const others = otherPartLines(device, home, FULL_SCREEN_PART_LINES);
+  const MainPanel = type === null ? null : type.Panel;
+
+  return (
+    <div class="panel-full" role="dialog" aria-label={device.name} data-focus-scope>
+      {MainPanel !== null && entity !== undefined && (
+        <MainPanel
+          entity={entity}
+          homeAddress={props.homeAddress}
+          run={props.onRun}
+          liveVideo={props.liveVideo}
+        />
+      )}
+
+      <div class="panel-full-bar">
+        <h1>
+          {device.name}
+          {device.roomName !== null && <span class="panel-full-room"> · {device.roomName}</span>}
+        </h1>
+        {others.length > 0 && <div class="panel-full-parts">{others.join(' · ')}</div>}
+      </div>
+
+      <CloseButton onClose={props.onClose} />
+    </div>
+  );
+}
+
+/** Last in the page so the first control, not this button, takes focus; drawn top right. */
+function CloseButton(props: { onClose(): void }) {
+  return (
+    <button class="icon-button panel-close" aria-label="Close" onClick={props.onClose}>
+      <Icon path={CLOSE_ICON} />
+    </button>
   );
 }

@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { buildDevices, findDevice, groupByRoom, type Device } from '../core/devices';
 import { EMPTY_HOME, type HomeSnapshot } from '../core/home-assistant';
 import type { ConnectionStatus, HomeConnection, OpenFailure } from '../core/home-connection';
+import { NO_LIVE_VIDEO } from '../core/live-video';
 import type { RemoteKey } from '../core/remote-key';
 import { withTimeout } from '../core/http';
 import { addCard, hasCard, pageCount, removeCard, withCurrentSizes } from '../core/layout';
@@ -36,6 +37,7 @@ import {
   type SavedState,
 } from '../core/saved-state';
 import { leaveToTv } from '../platform/back';
+import { isKeyboardOpen } from '../platform/keyboard';
 import { closeApp } from '../platform/close-app';
 import { openHomeConnection } from '../platform/home-assistant-connection';
 import { fetchSend } from '../platform/http';
@@ -446,9 +448,10 @@ export function App() {
           return;
         }
         // Back closes what is open; on a first screen it hands over to the TV (see back.ts).
-        // In a text field it is left alone, so the TV keyboard can close itself.
+        // While the TV keyboard is open it is left alone, so the keyboard can close itself.
+        // (A focused field is not enough to tell: the sign-in forms focus their first field.)
         if (now.overlay.kind !== 'none') closeOverlay();
-        else if (isTypingInField()) return;
+        else if (isKeyboardOpen()) return;
         else leaveToTv();
         event.preventDefault();
         return;
@@ -498,6 +501,8 @@ export function App() {
         refusedToken={refusedToken}
         onSignedIn={handleSignedIn}
         onClose={closeApp}
+        registerKeys={(handler) => (screenKeys.current = handler)}
+        isKeyboardOpen={isKeyboardOpen}
       />
     );
   }
@@ -538,6 +543,9 @@ export function App() {
           device={panelDevice}
           home={shownHome}
           homeAddress={homeAddress}
+          liveVideo={
+            connectionRef.current === null ? NO_LIVE_VIDEO : connectionRef.current.liveVideo
+          }
           onRun={run}
           onClose={closeOverlay}
         />

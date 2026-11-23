@@ -9,6 +9,7 @@
  * when a type is added.
  */
 
+import type { LiveVideoSource } from '../core/live-video';
 import type { ComponentType } from 'preact';
 import type { EntityState } from '../core/home-assistant';
 import type { ServiceCall } from '../core/home-connection';
@@ -37,6 +38,8 @@ export interface PanelProps {
   /** The Home Assistant address, for things fetched from it directly, such as a camera's picture. */
   homeAddress: string;
   run(action: Action): void;
+  /** Live camera video, for the camera type (see src/core/live-video.ts). */
+  liveVideo: LiveVideoSource;
 }
 
 export interface DeviceType extends PartType {
@@ -69,4 +72,11 @@ export interface DeviceType extends PartType {
 
   /** Every control this type has, for the device's panel. */
   Panel: ComponentType<PanelProps>;
+
+  /**
+   * How the panel opens when this type is the device's main part. 'box' (the default) is the
+   * popup over the home screen; 'full-screen' fills the screen, with the device's name and the
+   * close button in a bar across the top. The camera uses it so its picture fills the height.
+   */
+  panelLayout?: 'box' | 'full-screen';
 }

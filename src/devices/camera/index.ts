@@ -1,6 +1,7 @@
 /**
- * The camera type: cameras and video doorbells. It shows a still picture, refreshed every
- * few seconds; live video is not part of the first version.
+ * The camera type: cameras and video doorbells. The card shows a still picture, refreshed
+ * every few seconds. The panel fills the screen, and plays live video where Home Assistant
+ * offers it (see Panel.tsx).
  */
 
 import type { DeviceType } from '../device-type';
@@ -23,4 +24,5 @@ export const cameraType: DeviceType = {
 
   Card: CameraCard,
   Panel: CameraPanel,
+  panelLayout: 'full-screen',
 };
