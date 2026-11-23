@@ -4,7 +4,14 @@
 
 import { describe, expect, it } from 'vitest';
 import { sampleHome } from '../test-support/sample-home';
-import { buildDevices, findDevice, groupByRoom, NO_ROOM, type Device } from './devices';
+import {
+  buildDevices,
+  findDevice,
+  groupByRoom,
+  NO_ROOM,
+  SAFE_COVER_KINDS,
+  type Device,
+} from './devices';
 import { EMPTY_HOME, type HomeSnapshot } from './home-assistant';
 import type { PartType } from './part-type';
 
@@ -113,7 +120,7 @@ describe('buildDevices: the device', () => {
     home.states['cover.lounge_blind'] = {
       entity_id: 'cover.lounge_blind',
       state: 'open',
-      attributes: {},
+      attributes: { device_class: 'blind' },
     };
     home.entities.push({
       entity_id: 'cover.lounge_blind',
@@ -365,6 +372,32 @@ describe('buildDevices: devices that must never be controlled from the TV', () =
       original_name: 'Cover',
     });
     expect(findDevice(buildDevices(home, partTypes), 'device:dev_plug_kettle')?.parts).toEqual([]);
+  });
+
+  it('treats a cover with no kind as possibly a garage door, and protects its device', () => {
+    const home = sampleHome();
+    addEntity(home, 'dev_plug_kettle', 'cover.unlabelled');
+
+    expect(findDevice(buildDevices(home, partTypes), 'device:dev_plug_kettle')?.parts).toEqual([]);
+  });
+
+  it('treats a cover of a kind not known to be safe the same way', () => {
+    const home = sampleHome();
+    addEntity(home, 'dev_plug_kettle', 'cover.mystery', { device_class: 'something_new' });
+
+    expect(findDevice(buildDevices(home, partTypes), 'device:dev_plug_kettle')?.parts).toEqual([]);
+  });
+
+  it('lists the kinds of cover that are safe to control from the TV', () => {
+    expect(SAFE_COVER_KINDS).toEqual([
+      'awning',
+      'blind',
+      'curtain',
+      'damper',
+      'shade',
+      'shutter',
+      'window',
+    ]);
   });
 
   it('still allows a device with a blind, which is a cover but not a door', () => {

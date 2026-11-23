@@ -168,10 +168,24 @@ export function findDevice(devices: Device[], id: string): Device | null {
 }
 
 /**
- * True for an entity that can unlock a door, disarm an alarm, or open a door, garage or
- * gate. The design rules these out entirely: whoever holds the remote must never be able
- * to do any of those. A cover that has not reported yet counts as protected, because its
- * kind (blind or garage door) is not known until it does.
+ * The kinds of cover (Home Assistant's `device_class`) that are safe to control from the
+ * TV. Any other cover, including one that reports no kind, might be a door, garage or gate.
+ */
+export const SAFE_COVER_KINDS = [
+  'awning',
+  'blind',
+  'curtain',
+  'damper',
+  'shade',
+  'shutter',
+  'window',
+];
+
+/**
+ * True for an entity that can unlock a door, disarm an alarm, or might open a door, garage
+ * or gate. The design rules these out entirely: whoever holds the remote must never be able
+ * to do any of those. For covers this errs on the safe side: only the kinds in
+ * SAFE_COVER_KINDS are allowed, and a cover that has not reported yet counts as protected.
  */
 function isProtectedEntity(entry: RegistryEntity, state: EntityState | undefined): boolean {
   const domain = domainOf(entry.entity_id);
@@ -180,7 +194,7 @@ function isProtectedEntity(entry: RegistryEntity, state: EntityState | undefined
   if (state === undefined) return true;
 
   const kind = readText(state, 'device_class');
-  return kind === 'door' || kind === 'garage' || kind === 'gate';
+  return kind === null || SAFE_COVER_KINDS.indexOf(kind) === -1;
 }
 
 /** False for entities the person, or the integration, has switched off or hidden in Home Assistant. */
