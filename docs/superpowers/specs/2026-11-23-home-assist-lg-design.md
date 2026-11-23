@@ -62,7 +62,8 @@ lights, heating, speakers and plugs through Simon's own backend.
   - The same request marked as coming from a web page (any `Origin`, including `null` and `file://`) is
     refused by Home Assistant's cross-origin check with HTTP 403.
   - `/auth/token` accepts any origin.
-  - Whether webOS applies the cross-origin check to an installed app is unknown. See "First step".
+  - webOS 4.5 does not apply the cross-origin check to an installed app (tested on the C9, 2026-11-23).
+    Newer webOS versions are untested. See "First step".
 - **Tado allowance.** Tado limits API calls per day. Heating changes must be sent sparingly (see Heating).
 - **Shared screen.** A TV is used by everyone in the room, including guests.
 
@@ -122,6 +123,11 @@ Before any other work, build a minimal app, install it on the C9, and have it ca
   identical either way.
 
 The same minimal app proves the build chain: compiled for Chromium 53, packaged, installed and launched.
+
+**Result, 2026-11-23, on the C9 (webOS 4.5):** the call succeeded from the installed app, and so did the other
+three tests. **Route chosen: `direct`.** The app makes the sign-in requests itself and no helper service is
+built. This is proven on webOS 4.5 only. If a newer TV turns out to apply the cross-origin check, the helper
+service above is the fallback. The build chain worked as well. Details are in `docs/tv-proof-results.md`.
 
 ### Live data
 
