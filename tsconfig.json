@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "target": "ES2016",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "types": [],
+    "lib": [
+      "ES2016",
+      "DOM",
+      "ES2017.Object",
+      "ES2017.String",
+      "ES2018.Promise",
+      "ES2019.Array",
+      "ES2019.Object",
+      "ES2020.Promise"
+    ]
+  },
+  "include": ["src"]
+}
