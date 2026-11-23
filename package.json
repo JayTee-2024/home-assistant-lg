@@ -14,6 +14,7 @@
     "build": "node scripts/build.mjs",
     "check:bundle": "es-check es2016 dist/app/app.js",
     "dev": "node scripts/dev.mjs",
+    "dev:home": "node scripts/fake-home-assistant.mjs",
     "package": "npm run build && npm run check:bundle && node scripts/package.mjs",
     "deploy": "npm run package && node scripts/deploy.mjs"
   },

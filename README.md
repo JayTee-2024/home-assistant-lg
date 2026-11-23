@@ -28,17 +28,18 @@ This list grows as folders are added. Every source file starts with a comment sa
 
 You need [Node.js](https://nodejs.org) 22 or newer.
 
-| Command                | What it does                                                                                                            |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `npm install`          | Downloads the tools. Run once after cloning.                                                                            |
-| `npm run check`        | Runs the formatting check, the linter, the type check and the tests. Run before every commit.                           |
-| `npm run test`         | Runs the tests only.                                                                                                    |
-| `npm run format`       | Rewrites files to the project's formatting.                                                                             |
-| `npm run dev`          | Builds the app, rebuilds on every change, and serves it at http://localhost:5173.                                       |
-| `npm run build`        | Builds the app once into `dist/app`, the folder that goes on the TV.                                                    |
-| `npm run check:bundle` | Confirms the built JavaScript uses no syntax newer than the oldest supported TV understands. Run after `npm run build`. |
-| `npm run package`      | Builds the app, runs `check:bundle`, and wraps the app into a `.ipk` file in `dist/`, the format webOS TVs install.     |
-| `npm run deploy`       | Runs `npm run package`, then installs the package on a rooted TV and launches it. See "Install on a TV".                |
+| Command                | What it does                                                                                                                                     |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm install`          | Downloads the tools. Run once after cloning.                                                                                                     |
+| `npm run check`        | Runs the formatting check, the linter, the type check and the tests. Run before every commit.                                                    |
+| `npm run test`         | Runs the tests only.                                                                                                                             |
+| `npm run format`       | Rewrites files to the project's formatting.                                                                                                      |
+| `npm run dev`          | Builds the app, rebuilds on every change, and serves it at http://localhost:5173.                                                                |
+| `npm run dev:home`     | Starts a stand-in Home Assistant at http://localhost:8124 with a made-up home (username `tv`, password `tv`), for developing without a real one. |
+| `npm run build`        | Builds the app once into `dist/app`, the folder that goes on the TV.                                                                             |
+| `npm run check:bundle` | Confirms the built JavaScript uses no syntax newer than the oldest supported TV understands. Run after `npm run build`.                          |
+| `npm run package`      | Builds the app, runs `check:bundle`, and wraps the app into a `.ipk` file in `dist/`, the format webOS TVs install.                              |
+| `npm run deploy`       | Runs `npm run package`, then installs the package on a rooted TV and launches it. See "Install on a TV".                                         |
 
 In a desktop browser the proof screen reports "Sign-in route: helper-service". That is expected: desktop
 browsers block the sign-in request that the TV may allow. Only the result on a TV counts.
