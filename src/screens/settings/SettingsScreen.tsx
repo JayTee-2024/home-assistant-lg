@@ -2,7 +2,7 @@
  * Settings: a full-screen layer over the home screen, with its sections listed on the left.
  *
  *   Devices            the device picker
- *   Reorganise layout  arrives in a later version
+ *   Reorganise layout  leaves Settings for the reorganise mode
  *   Connection         the address, the signed-in user, and Sign out
  *
  * Back, or the close button, returns to the home screen.
@@ -24,6 +24,8 @@ export interface SettingsScreenProps {
   onToggleDevice(device: Device): void;
   onUnsupportedDevice(device: Device): void;
   onSignOut(): void;
+  /** Leaves Settings for the "Reorganise layout" mode. */
+  onReorganise(): void;
   onClose(): void;
 }
 
@@ -56,10 +58,7 @@ export function SettingsScreen(props: SettingsScreenProps) {
             isCurrent={section === 'devices'}
             onPress={() => setSection('devices')}
           />
-          <button class="settings-section" disabled>
-            Reorganise layout
-            <span class="settings-section-note">Coming soon</span>
-          </button>
+          <SectionButton label="Reorganise layout" isCurrent={false} onPress={props.onReorganise} />
           <SectionButton
             label="Connection"
             isCurrent={section === 'connection'}

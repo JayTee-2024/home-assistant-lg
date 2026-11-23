@@ -5,7 +5,7 @@
  * the card's main part (its Card component), and other parts add a short line each.
  *
  * The card is placed by its grid coordinates with absolute positioning, because Chromium 53
- * has no CSS grid. home.css explains the arithmetic.
+ * has no CSS grid. grid-position.ts explains the arithmetic.
  */
 
 import type { Device } from '../../core/devices';
@@ -13,6 +13,7 @@ import type { HomeSnapshot } from '../../core/home-assistant';
 import { cellsOf, GRID_COLUMNS, GRID_ROWS, type CardPlace } from '../../core/layout';
 import { deviceTypeFor } from '../../devices/registry';
 import { Icon, MORE_ICON } from '../shared/Icon';
+import { along, span } from './grid-position';
 
 export interface DeviceCardProps {
   place: CardPlace;
@@ -28,9 +29,6 @@ export interface DeviceCardProps {
   /** Opens the device's panel. */
   onMore(): void;
 }
-
-/** The space between cards. Must match --gap in home.css. */
-const GAP = '1.5rem';
 
 export function DeviceCard(props: DeviceCardProps) {
   const { place, device, home } = props;
@@ -130,14 +128,4 @@ function extraLinesFor(device: Device, home: HomeSnapshot, limit: number): strin
     if (summary !== null) lines.push(part.name + ' ' + summary);
   }
   return lines;
-}
-
-/** How far along the grid a column or row starts: its share of the width plus the gaps before it. */
-function along(index: number, count: number): string {
-  return 'calc(' + index + ' * (100% + ' + GAP + ') / ' + count + ')';
-}
-
-/** How wide or tall a card covering `cells` cells is: the cells plus the gaps between them. */
-function span(cells: number, count: number): string {
-  return 'calc(' + cells + ' * (100% + ' + GAP + ') / ' + count + ' - ' + GAP + ')';
 }

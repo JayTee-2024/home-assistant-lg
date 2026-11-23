@@ -1,0 +1,66 @@
+/*
+ * The "Reorganise layout" mode. It reuses the home screen's grid and card styles
+ * (home.css) and adds the empty cells, the move marker, and the card being moved.
+ */
+
+.reorganise {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  background: #0e1116;
+  z-index: 10;
+}
+
+.reorganise-help {
+  flex: 1;
+  margin: 0 2rem;
+  color: #a7b0bd;
+  text-align: center;
+}
+
+.reorganise-done {
+  height: 4rem;
+  padding: 0 2.5rem;
+  font-size: 1.5rem;
+}
+
+/* Every cell of the grid, drawn under the cards, so the empty places can be seen. */
+.reorganise-cell {
+  position: absolute;
+  box-sizing: border-box;
+  border: 0.125rem dashed #2e3642;
+  border-radius: 1.25rem;
+}
+
+.move-card {
+  justify-content: space-between;
+  cursor: grab;
+}
+
+.move-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: #2e3642;
+  color: #f2f4f7;
+}
+
+/* The card being moved: lifted, with an amber edge; red where it does not fit. */
+.move-card-held {
+  border: 0.25rem solid #ffb454;
+  box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.6);
+  z-index: 2;
+}
+
+.move-card-refused {
+  border: 0.25rem solid #ff6b6b;
+  opacity: 0.85;
+  z-index: 2;
+}

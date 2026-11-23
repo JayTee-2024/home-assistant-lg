@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { buildDevices, findDevice, groupByRoom, type Device } from '../core/devices';
 import { EMPTY_HOME, type HomeSnapshot } from '../core/home-assistant';
 import type { ConnectionStatus, HomeConnection, OpenFailure } from '../core/home-connection';
+import type { RemoteKey } from '../core/remote-key';
 import { withTimeout } from '../core/http';
 import { addCard, hasCard, pageCount, removeCard, withCurrentSizes } from '../core/layout';
 import { createLongPress } from '../core/long-press';
@@ -44,6 +45,7 @@ import { DEVICE_TYPES, deviceTypeFor } from '../devices/registry';
 import { ConnectingScreen } from '../screens/connecting/ConnectingScreen';
 import { HomeScreen, type PageEntry } from '../screens/home/HomeScreen';
 import { PanelOverlay } from '../screens/panel/PanelOverlay';
+import { ReorganiseScreen } from '../screens/reorganise/ReorganiseScreen';
 import { SettingsScreen } from '../screens/settings/SettingsScreen';
 import {
   focusElement,
@@ -58,7 +60,11 @@ import { SignInScreen } from '../screens/sign-in/SignInScreen';
 type Phase = 'starting' | 'signed-out' | 'connecting' | 'home';
 
 /** What is open over the home screen, if anything. */
-type Overlay = { kind: 'none' } | { kind: 'panel'; deviceId: string } | { kind: 'settings' };
+type Overlay =
+  | { kind: 'none' }
+  | { kind: 'panel'; deviceId: string }
+  | { kind: 'settings' }
+  | { kind: 'reorganise' };
 const NO_OVERLAY: Overlay = { kind: 'none' };
 
 /** How long a sign-in request may take before the app gives up on it. */
@@ -104,6 +110,11 @@ export function App() {
   const attempt = useRef(0);
   const homeRef = useRef(home);
   const toastTimer = useRef<number | null>(null);
+  /**
+   * A screen that wants the remote's keys before the app handles them (the reorganise mode,
+   * while a card is picked up). It returns true for a key it has dealt with.
+   */
+  const screenKeys = useRef<((key: RemoteKey) => boolean) | null>(null);
   /** What had focus before a panel or Settings opened, to return to when it closes. */
   const focusBeforeOverlay = useRef<HTMLElement | null>(null);
 
@@ -369,6 +380,13 @@ export function App() {
       const key = remoteKeyFromCode(event.keyCode);
       const now = current.current;
 
+      // A screen that has claimed the keys gets them first.
+      const claimed = screenKeys.current;
+      if (key !== null && claimed !== null && !event.repeat && claimed(key)) {
+        event.preventDefault();
+        return;
+      }
+
       if (key === 'ok') {
         // While OK is held after a press on a card, the remote keeps sending OK. Swallow every
         // one until the key comes up: once a long press has opened the panel, those repeats
@@ -489,7 +507,21 @@ export function App() {
           onToggleDevice={toggleDevice}
           onUnsupportedDevice={(device) => showToast(device.name + ' is not supported yet.')}
           onSignOut={signOut}
+          onReorganise={() => setOverlay({ kind: 'reorganise' })}
           onClose={closeOverlay}
+        />
+      )}
+
+      {overlay.kind === 'reorganise' && (
+        <ReorganiseScreen
+          layout={saved.layout}
+          devices={devices}
+          registerKeys={(handler) => (screenKeys.current = handler)}
+          onDone={(layout) => {
+            updateSaved((state) => ({ ...state, layout }));
+            setPage(0);
+            setOverlay(NO_OVERLAY);
+          }}
         />
       )}
 

@@ -12,6 +12,7 @@ import '../devices/shared/devices.css';
 import '../screens/home/home.css';
 import '../screens/panel/panel.css';
 import '../screens/settings/settings.css';
+import '../screens/reorganise/reorganise.css';
 
 import { render } from 'preact';
 import { App } from './App';

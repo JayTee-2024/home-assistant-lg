@@ -5,19 +5,9 @@
  * It only translates codes. Deciding what a key does belongs to the screens.
  */
 
-export type RemoteKey =
-  | 'up'
-  | 'down'
-  | 'left'
-  | 'right'
-  | 'ok'
-  | 'back'
-  | 'red'
-  | 'green'
-  | 'yellow'
-  | 'blue'
-  | 'channelUp'
-  | 'channelDown';
+import type { RemoteKey } from '../core/remote-key';
+
+export type { RemoteKey };
 
 const KEY_NAMES: { [keyCode: number]: RemoteKey } = {
   37: 'left',
