@@ -1,15 +1,15 @@
 // Installs the packaged app on a rooted TV and launches it. For development only:
 // it needs root SSH access, which ordinary users of the app will not have.
-// Run with: npm run deploy   (after npm run package)
+// Run with: npm run deploy   (which builds and packages the current code first)
 //
 // Steps: read settings, copy the .ipk to the TV, ask the TV's install service to
-// install it, then launch the app.
+// install it, stop the install command it left running, then launch the app.
 
-import { spawn } from 'node:child_process';
 import { createReadStream, existsSync, readdirSync } from 'node:fs';
 import { APP_ID, readDeployConfig } from './lib/deploy-config.mjs';
-import { readInstallProgress } from './lib/install-output.mjs';
-import { installCommand, launchCommand } from './lib/tv-commands.mjs';
+import { readInstallAnswer, readInstallPid, readInstallProgress } from './lib/install-output.mjs';
+import { runCommand } from './lib/run-command.mjs';
+import { installCommand, launchCommand, stopCommand } from './lib/tv-commands.mjs';
 
 const PACKAGE_FOLDER = 'dist';
 const REMOTE_PACKAGE = '/tmp/home-assist-lg.ipk';
@@ -61,44 +61,15 @@ const sshArguments = [
 ];
 
 /**
- * Runs one command on the TV. Resolves with the exit code and everything it printed.
- * `onOutput` is called with the output so far each time more arrives; returning true
- * from it ends the command early.
+ * Runs one command on the TV over ssh. See scripts/lib/run-command.mjs for what it
+ * resolves with and for the options.
  */
-function runOnTv(command, { input = null, onOutput = () => false, timeoutMs = 30000 } = {}) {
-  return new Promise((resolve) => {
-    const child = spawn('ssh', [...sshArguments, command], {
-      stdio: [input ? 'pipe' : 'ignore', 'pipe', 'pipe'],
-    });
-    let output = '';
-    let timedOut = false;
-
-    const timer = setTimeout(() => {
-      timedOut = true;
-      child.kill();
-    }, timeoutMs);
-
-    const collect = (chunk) => {
-      output += chunk.toString();
-      if (onOutput(output)) child.kill();
-    };
-    child.stdout.on('data', collect);
-    child.stderr.on('data', collect);
-    if (input) input.pipe(child.stdin);
-
-    // "error" means ssh itself could not be started, most often because it is not installed.
-    child.on('error', (error) => {
-      clearTimeout(timer);
-      if (error.code === 'ENOENT') {
-        fail('The ssh command was not found on this computer. Install OpenSSH and try again.');
-      }
-      resolve({ code: -1, output: output + error.message, timedOut });
-    });
-    child.on('close', (code) => {
-      clearTimeout(timer);
-      resolve({ code, output, timedOut });
-    });
-  });
+async function runOnTv(command, options) {
+  const result = await runCommand('ssh', [...sshArguments, command], options);
+  if (result.notFound) {
+    fail('The ssh command was not found on this computer. Install OpenSSH and try again.');
+  }
+  return result;
 }
 
 // 4. Copy the package. Piping it through "cat" avoids scp, which modern clients run over
@@ -117,11 +88,17 @@ const installed = await runOnTv(installCommand(REMOTE_PACKAGE), {
   onOutput: (output) => readInstallProgress(output) !== 'waiting',
   timeoutMs: INSTALL_TIMEOUT_MS,
 });
+// The install command leaves its luna-send running on the TV. End it, whatever the result.
+const installPid = readInstallPid(installed.output);
+if (installPid !== null) {
+  await runOnTv(stopCommand(installPid));
+}
 if (readInstallProgress(installed.output) !== 'installed') {
-  if (installed.output.trim() === '') {
+  const answer = readInstallAnswer(installed.output);
+  if (answer === '') {
     fail('The TV gave no answer to the install request.');
   }
-  console.error(installed.output.trim());
+  console.error(answer);
   fail(
     installed.timedOut
       ? 'The TV did not finish installing in time.'

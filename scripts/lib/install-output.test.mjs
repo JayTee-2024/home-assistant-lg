@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { readInstallProgress } from './install-output.mjs';
+import { readInstallAnswer, readInstallPid, readInstallProgress } from './install-output.mjs';
 
 it('is waiting while the TV is still installing', () => {
   const output = `{
@@ -32,4 +32,23 @@ it('is failed when the TV reports an install failure', () => {
 it('treats a failure seen after earlier progress as failed', () => {
   const output = '{ "details": { "state": "installing" } }\n{ "details": { "reason": "FAILED" } }';
   expect(readInstallProgress(output)).toBe('failed');
+});
+
+it('reads the process number the install command prints first', () => {
+  expect(readInstallPid('install-pid:6855\n{ "returnValue": true }')).toBe('6855');
+});
+
+it('has no process number when the TV printed none', () => {
+  expect(readInstallPid('')).toBeNull();
+  expect(readInstallPid('{ "state": "installed" }')).toBeNull();
+});
+
+it("gives the install service's answer without the process number line", () => {
+  expect(readInstallAnswer('install-pid:6855\n{ "returnValue": true }\n')).toBe(
+    '{ "returnValue": true }',
+  );
+});
+
+it('gives an empty answer when the TV printed only the process number', () => {
+  expect(readInstallAnswer('install-pid:6855\n')).toBe('');
 });
