@@ -73,26 +73,18 @@ computer, so nothing is published.
 
 These test files are not the release. The real release is made in step 5 of the steps above.
 
-## Listing in the main Homebrew Channel repository (optional)
+## Listing in the main Homebrew Channel repository
 
-webosbrew's own repository lists apps so people do not need to add an address. It needs an open-source
-licence in this repository. To submit: fork
-[webosbrew/apps-repo](https://github.com/webosbrew/apps-repo), add
-`packages/net.badacid.homeassistlg.yml`, and open a pull request:
+webosbrew's own repository lists apps so people do not need to add an address. The listing is
+[`webosbrew/net.badacid.homeassistlg.yml`](../webosbrew/net.badacid.homeassistlg.yml): it points at the
+"latest release" manifest, so new releases reach the listing without changing it. Its screenshots live in
+`docs/screenshots/`.
 
-```yaml
-title: Home Assist LG
-iconUri: https://raw.githubusercontent.com/JayTee-2024/home-assistant-lg/main/webos/largeIcon.png
-manifestUrl: https://github.com/JayTee-2024/home-assistant-lg/releases/latest/download/net.badacid.homeassistlg.manifest.json
-category: utility
-pool: main
-shortDescription: Control your Home Assistant home with the TV remote.
-requirements:
-  webosRelease: '>=4.0'
-description: |
-  Shows the devices in your Home Assistant as cards and controls them with the remote. The TV
-  talks straight to your own Home Assistant. Locks, alarms and doors are deliberately not supported.
-  Source and install guide: https://github.com/JayTee-2024/home-assistant-lg
-```
+To submit it (once): fork [webosbrew/apps-repo](https://github.com/webosbrew/apps-repo), copy the file into
+its `packages/` folder, and open a pull request using their template, including its AI-use declaration.
+Read their README's rules first; they may have changed since this was written. To check the file the way
+their pull-request bot will, clone their repository, install its `requirements.txt`, and run
+`python3 -m repogen.lintpkg -f packages/net.badacid.homeassistlg.yml --new`.
 
-Read the repository's own rules before submitting; they may have changed since this was written.
+Change the file here, and send a new pull request there, only when the title, description, icon address or
+screenshots change.
