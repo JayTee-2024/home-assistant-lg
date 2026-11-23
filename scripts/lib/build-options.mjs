@@ -1,8 +1,13 @@
+import { readFileSync } from 'node:fs';
+
 // The esbuild settings for the one-off build (build.mjs) and the development server
 // (dev.mjs). Both start from the same shared settings, so the two can never drift apart.
 
 /** Where the built app goes. Everything in this folder ends up on the TV. */
 export const OUTPUT_FOLDER = 'dist/app';
+
+/** The app's version, set only in package.json. */
+const version = JSON.parse(readFileSync('package.json', 'utf8')).version;
 
 /** Settings both builds share. */
 const sharedOptions = {
@@ -19,6 +24,9 @@ const sharedOptions = {
 
   jsx: 'automatic',
   jsxImportSource: 'preact',
+
+  // Replaces __APP_VERSION__ in the source with the version, as text (see src/core/app-version.ts).
+  define: { __APP_VERSION__: JSON.stringify(version) },
   logLevel: 'info',
 };
 

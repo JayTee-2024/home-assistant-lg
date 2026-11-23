@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { devBuildOptions, releaseBuildOptions } from './build-options.mjs';
 
@@ -14,5 +15,12 @@ test('both builds target the TV browser engine', () => {
   for (const options of [releaseBuildOptions, devBuildOptions]) {
     expect(options.target).toEqual(['chrome53']);
     expect(options.format).toBe('iife');
+  }
+});
+
+test('both builds put package.json’s version into the app, for the Settings screen to show', () => {
+  const version = JSON.parse(readFileSync('package.json', 'utf8')).version;
+  for (const options of [releaseBuildOptions, devBuildOptions]) {
+    expect(options.define.__APP_VERSION__).toBe(JSON.stringify(version));
   }
 });
