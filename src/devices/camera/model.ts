@@ -10,6 +10,7 @@
  */
 
 import { isAvailable, readText, type EntityState } from '../../core/home-assistant';
+import type { LiveState } from '../../core/live-video';
 
 export interface CameraView {
   isAvailable: boolean;
@@ -39,4 +40,28 @@ export function pictureUrl(
   const base = homeAddress.replace(/\/$/, '');
   const joiner = picturePath.indexOf('?') === -1 ? '?' : '&';
   return base + picturePath + joiner + '_=' + refreshCount;
+}
+
+/** What the full-screen camera view's buttons and status line say. */
+export interface CameraControls {
+  liveLabel: 'Watch live' | 'Stop live' | 'Watch again';
+  /** null when there is no sound to switch: before live video, and after it. */
+  soundLabel: 'Sound on' | 'Sound off' | null;
+  status: string | null;
+}
+
+export function cameraControls(state: LiveState, isMuted: boolean): CameraControls {
+  const soundLabel = isMuted ? 'Sound on' : 'Sound off';
+  switch (state) {
+    case 'idle':
+      return { liveLabel: 'Watch live', soundLabel: null, status: null };
+    case 'connecting':
+      return { liveLabel: 'Stop live', soundLabel, status: 'Connecting…' };
+    case 'playing':
+      return { liveLabel: 'Stop live', soundLabel, status: 'Live' };
+    case 'ended':
+      return { liveLabel: 'Watch again', soundLabel: null, status: 'Live view ended' };
+    case 'failed':
+      return { liveLabel: 'Watch again', soundLabel: null, status: 'Live view did not start' };
+  }
 }

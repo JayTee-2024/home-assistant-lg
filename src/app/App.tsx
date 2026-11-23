@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { buildDevices, findDevice, groupByRoom, type Device } from '../core/devices';
 import { EMPTY_HOME, type HomeSnapshot } from '../core/home-assistant';
 import type { ConnectionStatus, HomeConnection, OpenFailure } from '../core/home-connection';
+import { NO_LIVE_VIDEO } from '../core/live-video';
 import type { RemoteKey } from '../core/remote-key';
 import { withTimeout } from '../core/http';
 import { addCard, hasCard, pageCount, removeCard, withCurrentSizes } from '../core/layout';
@@ -541,6 +542,9 @@ export function App() {
           device={panelDevice}
           home={shownHome}
           homeAddress={homeAddress}
+          liveVideo={
+            connectionRef.current === null ? NO_LIVE_VIDEO : connectionRef.current.liveVideo
+          }
           onRun={run}
           onClose={closeOverlay}
         />

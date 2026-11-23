@@ -53,3 +53,47 @@
   right: 2.5rem;
   margin: 0;
 }
+
+/* ---- The full-screen layout (a camera) ---- */
+
+.panel-full {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: #000;
+  z-index: 10;
+}
+
+/* See-through, fading into the picture, so it hides as little of it as it can. */
+.panel-full-bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  box-sizing: border-box;
+  min-height: 10rem;
+  padding: 2rem 40rem 2.5rem 4rem;
+  background: linear-gradient(rgba(8, 10, 14, 0.85), rgba(8, 10, 14, 0));
+}
+
+.panel-full-bar h1 {
+  font-size: 2.5rem;
+}
+
+.panel-full-room {
+  color: #a7b0bd;
+  font-weight: 400;
+}
+
+.panel-full-parts {
+  margin-top: 0.25rem;
+  color: #c9d0da;
+  font-size: 1.375rem;
+}
+
+.panel-full .panel-close {
+  z-index: 2;
+}

@@ -1,11 +1,11 @@
 /**
- * Tests for the camera type: where its still picture comes from.
+ * Tests for the camera type: where its still picture comes from, and its live view's controls.
  */
 
 import { describe, expect, it } from 'vitest';
 import { changed, sampleEntity } from '../../test-support/sample-home';
 import { cameraType } from './index';
-import { pictureUrl, readCamera } from './model';
+import { cameraControls, pictureUrl, readCamera } from './model';
 
 const doorbell = sampleEntity('camera.front_door');
 const address = 'http://192.168.1.100:8123';
@@ -50,5 +50,41 @@ describe('the camera type', () => {
     expect(cameraType.okAction(doorbell)).toBe('open-panel');
     expect(cameraType.isActive(doorbell)).toBe(false);
     expect(cameraType.summary(doorbell)).toBeNull();
+  });
+});
+
+describe('cameraControls', () => {
+  it('offers Watch live, and nothing else, before live video is asked for', () => {
+    expect(cameraControls('idle', true)).toEqual({
+      liveLabel: 'Watch live',
+      soundLabel: null,
+      status: null,
+    });
+  });
+
+  it('offers Stop live and the sound while connecting and playing', () => {
+    expect(cameraControls('connecting', true)).toEqual({
+      liveLabel: 'Stop live',
+      soundLabel: 'Sound on',
+      status: 'Connecting…',
+    });
+    expect(cameraControls('playing', false)).toEqual({
+      liveLabel: 'Stop live',
+      soundLabel: 'Sound off',
+      status: 'Live',
+    });
+  });
+
+  it('offers Watch again once the session has ended or failed', () => {
+    expect(cameraControls('ended', true)).toEqual({
+      liveLabel: 'Watch again',
+      soundLabel: null,
+      status: 'Live view ended',
+    });
+    expect(cameraControls('failed', false)).toEqual({
+      liveLabel: 'Watch again',
+      soundLabel: null,
+      status: 'Live view did not start',
+    });
   });
 });

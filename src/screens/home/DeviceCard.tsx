@@ -13,6 +13,7 @@ import { isAvailable, type HomeSnapshot } from '../../core/home-assistant';
 import { cellsOf, GRID_COLUMNS, GRID_ROWS, type CardPlace } from '../../core/layout';
 import { deviceTypeFor } from '../../devices/registry';
 import { Icon, MORE_ICON } from '../shared/Icon';
+import { otherPartLines } from '../shared/part-lines';
 import { along, span } from './grid-position';
 
 export interface DeviceCardProps {
@@ -70,7 +71,7 @@ export function DeviceCard(props: DeviceCardProps) {
 
   const isActive = mainType.isActive(mainEntity);
   const MainCard = mainType.Card;
-  const extraLines = extraLinesFor(device, home, place.size === 'small' ? 1 : 2);
+  const extraLines = otherPartLines(device, home, place.size === 'small' ? 1 : 2);
 
   return (
     <div
@@ -121,19 +122,4 @@ export function DeviceCard(props: DeviceCardProps) {
       </button>
     </div>
   );
-}
-
-/** A short line for each of the device's other parts, such as 'Battery 74%'. At most `limit` lines. */
-function extraLinesFor(device: Device, home: HomeSnapshot, limit: number): string[] {
-  const lines: string[] = [];
-
-  for (const part of device.parts.slice(1)) {
-    if (lines.length === limit) break;
-
-    const type = deviceTypeFor(part.typeId);
-    const entity = home.states[part.entityId];
-    const summary = type === null || entity === undefined ? null : type.summary(entity);
-    if (summary !== null) lines.push(part.name + ' ' + summary);
-  }
-  return lines;
 }

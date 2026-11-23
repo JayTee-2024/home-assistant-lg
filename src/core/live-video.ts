@@ -62,3 +62,12 @@ export interface LiveVideoSource {
   isSupported(entityId: string): Promise<boolean>;
   start(entityId: string, handlers: LiveVideoHandlers): LiveVideo;
 }
+
+/** For when there is no connection to ask: no camera can go live, and a start is refused. */
+export const NO_LIVE_VIDEO: LiveVideoSource = {
+  isSupported: () => Promise.resolve(false),
+  start(_entityId, handlers) {
+    setTimeout(() => handlers.onEvent('refused'), 0);
+    return { stop: () => undefined };
+  },
+};
