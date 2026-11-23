@@ -78,6 +78,13 @@ describe('the sample home, sorted by the real types', () => {
     expect(findDevice(devices, 'entity:script.goodnight')?.mainPart?.typeId).toBe('button');
   });
 
+  it('leads the Tado thermostat with its heating, as a wide card', () => {
+    const tado = findDevice(devices, 'device:dev_tado');
+
+    expect(tado?.mainPart?.typeId).toBe('climate');
+    expect(tado?.cardSize).toBe('wide');
+  });
+
   it('has nothing supported for the lock or the garage door', () => {
     expect(findDevice(devices, 'device:dev_lock')?.parts).toEqual([]);
     expect(findDevice(devices, 'device:dev_garage')?.parts).toEqual([]);
