@@ -6,6 +6,9 @@
  * replaces the picture once it arrives. Live video starts with the sound off. Closing the view
  * ends the live session.
  *
+ * When live video stops, its last frame is kept as the camera's picture where the camera's
+ * own picture is only its last recording (see live-frames.ts).
+ *
  * Live video is only started on request: each live view wakes a Ring doorbell and starts a
  * session with Ring. The session's states are in src/core/live-video.ts; the WebRTC work
  * behind `liveVideo` is in src/platform/live-video.ts.
@@ -19,8 +22,9 @@ import {
   type LiveVideo,
 } from '../../core/live-video';
 import type { PanelProps } from '../device-type';
-import { CameraPicture } from './CameraPicture';
-import { cameraControls } from './model';
+import { CameraStill } from './CameraStill';
+import { saveLiveFrame } from './live-frames';
+import { cameraControls, readCamera } from './model';
 
 /** How often the still picture is fetched again: quick, since someone is looking at it. */
 const PANEL_REFRESH_MS = 2000;
@@ -81,6 +85,32 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
     if (isLost && liveButton.current !== null) liveButton.current.focus();
   }, [state]);
 
+  // The latest recording id, for saving a frame when a session stops (see live-frames.ts).
+  const recordingNow = useRef<string | null>(null);
+  recordingNow.current = readCamera(entity).recordingId;
+
+  /** Keeps the frame on screen as the camera's picture, for cameras whose picture is a recording. */
+  function saveFrame(element: HTMLVideoElement) {
+    const recordingId = recordingNow.current;
+    // HAVE_CURRENT_DATA (2): a frame has been shown. Before that there is nothing worth keeping.
+    if (recordingId === null || element.readyState < 2 || element.videoWidth === 0) return;
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = element.videoWidth;
+      canvas.height = element.videoHeight;
+      const drawing = canvas.getContext('2d');
+      if (drawing === null) return;
+      drawing.drawImage(element, 0, 0);
+      saveLiveFrame(entityId, {
+        url: canvas.toDataURL('image/jpeg', 0.85),
+        takenAt: new Date(),
+        recordingId,
+      });
+    } catch {
+      // A frame that cannot be copied is not worth an error: the old picture stays.
+    }
+  }
+
   function stopSession() {
     if (session.current !== null) {
       session.current.stop();
@@ -88,6 +118,7 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
     }
     const element = video.current;
     if (element !== null) {
+      saveFrame(element);
       element.pause();
       // Let go of the stream, so the TV stops decoding it.
       (element as HTMLVideoElement & { srcObject: MediaStream | null }).srcObject = null;
@@ -141,7 +172,7 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
 
   return (
     <div class="camera-view">
-      <CameraPicture entity={entity} homeAddress={homeAddress} refreshMs={PANEL_REFRESH_MS} />
+      <CameraStill entity={entity} homeAddress={homeAddress} refreshMs={PANEL_REFRESH_MS} />
       {/* Always in the page, so the stream has somewhere to go; shown only once it plays. */}
       <video
         ref={video}

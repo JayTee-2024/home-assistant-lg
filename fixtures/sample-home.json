@@ -146,7 +146,8 @@
         "friendly_name": "Front door",
         "access_token": "samplecameratoken",
         "entity_picture": "/api/camera_proxy/camera.front_door?token=samplecameratoken",
-        "supported_features": 2
+        "supported_features": 2,
+        "last_video_id": 7432109876543
       }
     },
     {

@@ -131,6 +131,24 @@
   object-fit: cover;
 }
 
+/* The picture with its label (CameraStill.tsx): "Live at 16:42" or "Last recording". */
+.camera-still {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.camera-label {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  background: rgba(8, 10, 14, 0.75);
+  color: #f2f4f7;
+  font-size: 1.125rem;
+}
+
 .camera-none {
   display: flex;
   align-items: center;
@@ -148,6 +166,19 @@
   bottom: 0;
   left: 0;
   background: #000;
+}
+
+.camera-view .camera-still {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.camera-view .camera-label {
+  bottom: 2.5rem;
+  left: 3rem;
+  padding: 0.5rem 1.25rem;
+  font-size: 1.5rem;
 }
 
 .camera-view .camera-picture,

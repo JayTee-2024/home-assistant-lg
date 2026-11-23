@@ -15,6 +15,7 @@ describe('readCamera', () => {
     expect(readCamera(doorbell)).toEqual({
       isAvailable: true,
       picturePath: '/api/camera_proxy/camera.front_door?token=samplecameratoken',
+      recordingId: '7432109876543',
     });
   });
 
@@ -23,6 +24,7 @@ describe('readCamera', () => {
     expect(readCamera(changed(doorbell, {}, 'unavailable'))).toEqual({
       isAvailable: false,
       picturePath: null,
+      recordingId: null,
     });
   });
 });
@@ -86,5 +88,18 @@ describe('cameraControls', () => {
       soundLabel: null,
       status: 'Live view did not start',
     });
+  });
+});
+
+describe('readCamera, recordings', () => {
+  it('reads which recording the picture comes from, for cameras that say', () => {
+    expect(readCamera(changed(doorbell, { last_video_id: '7432' })).recordingId).toBe('7432');
+    expect(readCamera(changed(doorbell, { last_video_id: null })).recordingId).toBeNull();
+  });
+
+  it('accepts a recording number as well as text, as Ring ids are large numbers', () => {
+    expect(readCamera(changed(doorbell, { last_video_id: 7432109876543 })).recordingId).toBe(
+      '7432109876543',
+    );
   });
 });
