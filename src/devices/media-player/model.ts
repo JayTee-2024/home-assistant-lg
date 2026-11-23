@@ -39,7 +39,10 @@ export interface MediaPlayerView {
   isMuted: boolean;
   source: string | null;
   sources: string[];
+  /** True when it can do at least one of play and pause. */
   canPlayPause: boolean;
+  canPlay: boolean;
+  canPause: boolean;
   canSetVolume: boolean;
   canMute: boolean;
   canSkip: boolean;
@@ -62,6 +65,8 @@ export function readMediaPlayer(entity: EntityState): MediaPlayerView {
     source: readText(entity, 'source'),
     sources: readTextList(entity, 'source_list'),
     canPlayPause: hasFeature(entity, PAUSE) || hasFeature(entity, PLAY),
+    canPlay: hasFeature(entity, PLAY),
+    canPause: hasFeature(entity, PAUSE),
     canSetVolume: hasFeature(entity, VOLUME_SET),
     canMute: hasFeature(entity, VOLUME_MUTE),
     canSkip: hasFeature(entity, NEXT_TRACK) || hasFeature(entity, PREVIOUS_TRACK),

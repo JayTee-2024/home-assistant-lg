@@ -417,16 +417,25 @@ describe('buildDevices: devices that must never be controlled from the TV', () =
     ).toBeGreaterThan(0);
   });
 
-  it('ignores a disabled lock entity on a device', () => {
-    const home = sampleHome();
-    addEntity(home, 'dev_plug_tv', 'lock.child_lock');
-    const lock = home.entities.filter((entry) => entry.entity_id === 'lock.child_lock')[0];
-    if (lock) lock.disabled_by = 'user';
+  it('protects a device even when its lock or garage door is hidden or disabled in Home Assistant', () => {
+    // Hidden only means "not on dashboards": Home Assistant can still operate it, and the
+    // device's other entities (a toggle button, say) would open the door just the same.
+    for (const [entityId, field] of [
+      ['lock.child_lock', 'disabled_by'],
+      ['lock.child_lock', 'hidden_by'],
+      ['cover.garage_x', 'hidden_by'],
+      ['cover.garage_x', 'disabled_by'],
+    ] as const) {
+      const home = sampleHome();
+      addEntity(home, 'dev_plug_tv', entityId, { device_class: 'garage' });
+      const entry = home.entities.filter((item) => item.entity_id === entityId)[0];
+      if (entry) entry[field] = 'user';
+      if (field === 'disabled_by') delete home.states[entityId];
 
-    expect(
-      findDevice(buildDevices(home, [...partTypes, withSwitch]), 'device:dev_plug_tv')?.parts
-        .length,
-    ).toBe(1);
+      expect(
+        findDevice(buildDevices(home, [...partTypes, withSwitch]), 'device:dev_plug_tv')?.parts,
+      ).toEqual([]);
+    }
   });
 });
 

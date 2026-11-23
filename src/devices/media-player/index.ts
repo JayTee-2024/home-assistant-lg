@@ -21,7 +21,7 @@ export const mediaPlayerType: DeviceType = {
   okAction: (entity) => {
     const view = readMediaPlayer(entity);
     if (!view.isAvailable) return 'nothing';
-    return view.canPlayPause ? playPause(entity) : 'open-panel';
+    return playPause(entity) ?? 'open-panel';
   },
   isActive: (entity) => readMediaPlayer(entity).isPlaying,
   summary: (entity) => {

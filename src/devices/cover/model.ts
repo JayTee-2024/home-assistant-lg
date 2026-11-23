@@ -7,7 +7,7 @@
  * Home Assistant: https://developers.home-assistant.io/docs/core/entity/cover
  */
 
-import { hasFeature, isAvailable, readNumber, type EntityState } from '../../core/home-assistant';
+import { hasFeature, readNumber, type EntityState } from '../../core/home-assistant';
 
 const OPEN = 1;
 const CLOSE = 2;
@@ -28,7 +28,9 @@ export interface CoverView {
 
 export function readCover(entity: EntityState): CoverView {
   return {
-    isAvailable: isAvailable(entity),
+    // 'unknown' is normal for a blind that cannot report where it is (many radio blinds), and
+    // Open and Close must still work for it. Only 'unavailable' means it cannot be reached.
+    isAvailable: entity.state !== 'unavailable',
     state: entity.state,
     position: readNumber(entity, 'current_position'),
     canOpen: hasFeature(entity, OPEN),
@@ -44,5 +46,6 @@ export function coverWords(view: CoverView): string {
   if (view.state === 'closing') return 'Closing…';
   if (view.state === 'closed') return 'Closed';
   if (view.state === 'open') return 'Open';
+  if (view.state === 'unknown') return 'Position unknown';
   return view.state.charAt(0).toUpperCase() + view.state.slice(1);
 }

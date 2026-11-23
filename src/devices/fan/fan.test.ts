@@ -47,6 +47,26 @@ describe('nextSpeed', () => {
   });
 });
 
+describe('nextSpeed with speeds that do not divide 100 evenly', () => {
+  // Home Assistant reports a 3-speed fan as 33, 66 or 100, with a step of 33.33...
+  const third = 100 / 3;
+  const sixth = 100 / 6;
+
+  it('moves a 3-speed fan up and down one speed from each reported value', () => {
+    expect(nextSpeed(33, third, 1)).toBe(67);
+    expect(nextSpeed(66, third, 1)).toBe(100);
+    expect(nextSpeed(100, third, -1)).toBe(67);
+    expect(nextSpeed(67, third, -1)).toBe(33);
+    expect(nextSpeed(33, third, -1)).toBe(0);
+  });
+
+  it('moves a 6-speed fan one speed at a time', () => {
+    expect(nextSpeed(33, sixth, 1)).toBe(50);
+    expect(nextSpeed(83, sixth, 1)).toBe(100);
+    expect(nextSpeed(83, sixth, -1)).toBe(67);
+  });
+});
+
 describe('fan actions', () => {
   it('toggles, sets the speed, oscillates and sets a preset', () => {
     expect(toggle(fan).call).toEqual({

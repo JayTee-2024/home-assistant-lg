@@ -71,15 +71,13 @@ describe('nextVolume', () => {
 });
 
 describe('media player actions', () => {
-  const call = (action: { call: { service: string; data: unknown } }) => [
-    action.call.service,
-    action.call.data,
-  ];
+  const call = (action: { call: { service: string; data: unknown } } | null) =>
+    action === null ? null : [action.call.service, action.call.data];
 
   it('plays and pauses, predicting the other state', () => {
     expect(call(playPause(sonos))).toEqual(['media_play_pause', {}]);
-    expect(playPause(sonos).predicted.state).toBe('paused');
-    expect(playPause(changed(sonos, {}, 'paused')).predicted.state).toBe('playing');
+    expect(playPause(sonos)?.predicted.state).toBe('paused');
+    expect(playPause(changed(sonos, {}, 'paused'))?.predicted.state).toBe('playing');
   });
 
   it('skips forward and back', () => {
@@ -98,6 +96,24 @@ describe('media player actions', () => {
     expect(call(turnOn(sonos))).toEqual(['turn_on', {}]);
     expect(call(turnOff(sonos))).toEqual(['turn_off', {}]);
     expect(turnOff(sonos).call.domain).toBe('media_player');
+  });
+});
+
+describe('play and pause on a player that supports only one of them', () => {
+  const playOnly = changed(sonos, { supported_features: 16384 }, 'paused');
+  const pauseOnly = changed(sonos, { supported_features: 1 }, 'playing');
+
+  it('sends play to a paused player that can only play', () => {
+    expect(playPause(playOnly)?.call.service).toBe('media_play');
+  });
+
+  it('sends pause to a playing player that can only pause', () => {
+    expect(playPause(pauseOnly)?.call.service).toBe('media_pause');
+  });
+
+  it('has nothing to send when the one it supports is not the one needed', () => {
+    expect(playPause(changed(playOnly, {}, 'playing'))).toBeNull();
+    expect(mediaPlayerType.okAction(changed(playOnly, {}, 'playing'))).toBe('open-panel');
   });
 });
 

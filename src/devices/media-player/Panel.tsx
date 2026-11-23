@@ -60,6 +60,9 @@ export function MediaPlayerPanel({ entity, run }: PanelProps) {
   };
 
   const isOff = view.state === 'off' || view.state === 'standby';
+  const playAction = playPause(entity);
+  // Home Assistant drops a player's volume while it is off. − and + would then guess.
+  const noVolume = shownVolume === null;
 
   return (
     <div>
@@ -78,8 +81,10 @@ export function MediaPlayerPanel({ entity, run }: PanelProps) {
             <PanelButton
               label={view.isPlaying ? 'Pause' : 'Play'}
               isFirst
-              isDisabled={off}
-              onPress={() => run(playPause(entity))}
+              isDisabled={off || playAction === null}
+              onPress={() => {
+                if (playAction !== null) run(playAction);
+              }}
             />
           )}
           {view.canSkip && (
@@ -91,13 +96,13 @@ export function MediaPlayerPanel({ entity, run }: PanelProps) {
       {(view.canSetVolume || view.canMute) && (
         <PanelRow label="Volume">
           {view.canSetVolume && (
-            <PanelButton label="−" isDisabled={off} onPress={() => pressVolume(-1)} />
+            <PanelButton label="−" isDisabled={off || noVolume} onPress={() => pressVolume(-1)} />
           )}
           {view.canSetVolume && (
             <PanelValue text={shownVolume === null ? '–' : shownVolume + '%'} />
           )}
           {view.canSetVolume && (
-            <PanelButton label="+" isDisabled={off} onPress={() => pressVolume(1)} />
+            <PanelButton label="+" isDisabled={off || noVolume} onPress={() => pressVolume(1)} />
           )}
           {view.canMute && (
             <PanelButton

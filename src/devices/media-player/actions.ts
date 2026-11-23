@@ -7,9 +7,21 @@
 import type { EntityState } from '../../core/home-assistant';
 import type { Action } from '../device-type';
 import { predict } from '../shared/predict';
+import { readMediaPlayer } from './model';
 
-export function playPause(entity: EntityState): Action {
-  return send(entity, 'media_play_pause', {}, entity.state === 'playing' ? 'paused' : 'playing');
+/**
+ * Plays a paused player, or pauses a playing one. Home Assistant's own play/pause service
+ * needs a player that supports both, so a player that supports only one is sent that one.
+ * Gives null when the player cannot do what is needed (a playing player with no pause).
+ */
+export function playPause(entity: EntityState): Action | null {
+  const view = readMediaPlayer(entity);
+  const toState = view.isPlaying ? 'paused' : 'playing';
+
+  if (view.canPlay && view.canPause) return send(entity, 'media_play_pause', {}, toState);
+  if (view.isPlaying && view.canPause) return send(entity, 'media_pause', {}, toState);
+  if (!view.isPlaying && view.canPlay) return send(entity, 'media_play', {}, toState);
+  return null;
 }
 
 export function next(entity: EntityState): Action {

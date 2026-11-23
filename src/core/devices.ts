@@ -86,9 +86,13 @@ export function buildDevices(home: HomeSnapshot, partTypes: PartType[]): Device[
       (entry) => entry.device_id === registryDevice.id && isShown(entry),
     );
     // A device that can unlock, disarm or open something is never controlled from the TV,
-    // not even through its other entities (a garage opener's "toggle" button, say).
-    const isProtected = entries.some((entry) =>
-      isProtectedEntity(entry, home.states[entry.entity_id]),
+    // not even through its other entities (a garage opener's "toggle" button, say). Every
+    // entity of the device counts here, hidden and disabled ones too: hiding a garage door
+    // in Home Assistant does not stop the device's toggle button from opening it.
+    const isProtected = home.entities.some(
+      (entry) =>
+        entry.device_id === registryDevice.id &&
+        isProtectedEntity(entry, home.states[entry.entity_id]),
     );
     const collected = isProtected ? [] : collectParts(entries, home, partTypes);
     const isComplete = entries.every((entry) => home.states[entry.entity_id] !== undefined);

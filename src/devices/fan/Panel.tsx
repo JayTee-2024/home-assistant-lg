@@ -27,7 +27,9 @@ export function FanPanel({ entity, run }: PanelProps) {
           <PanelButton
             label="−"
             isDisabled={off}
-            onPress={() => run(setSpeed(entity, nextSpeed(view.speedPercent, view.step, -1)))}
+            onPress={() =>
+              run(setSpeed(entity, nextSpeed(view.isOn ? view.speedPercent : 0, view.step, -1)))
+            }
           />
           <PanelValue
             text={!view.isOn || view.speedPercent === null ? 'Off' : view.speedPercent + '%'}

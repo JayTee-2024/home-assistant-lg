@@ -50,12 +50,16 @@ export function readFan(entity: EntityState): FanView {
   };
 }
 
-/** The speed one press of − (-1) or + (1) leads to, in the fan's own step, from 0 to 100. */
+/**
+ * The speed one press of − (-1) or + (1) leads to, in the fan's own step, from 0 to 100.
+ *
+ * Home Assistant rounds a fan's speeds when it reports them: a 3-speed fan reports 33, 66
+ * and 100, though its step is 33.33. So the current speed is first matched to the nearest
+ * whole step, and the next step is taken from there. (Taking it from 33 itself would land
+ * on 33.33, which Home Assistant rounds back to the same speed.)
+ */
 export function nextSpeed(current: number | null, step: number, direction: -1 | 1): number {
-  const from = current ?? 0;
-  const next =
-    direction === 1
-      ? Math.floor(from / step + 1e-6) * step + step
-      : Math.ceil(from / step - 1e-6) * step - step;
+  const nearestStep = Math.round((current ?? 0) / step);
+  const next = (nearestStep + direction) * step;
   return Math.max(0, Math.min(100, Math.round(next)));
 }
