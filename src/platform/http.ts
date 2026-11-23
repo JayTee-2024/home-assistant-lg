@@ -8,16 +8,7 @@
  * the caller.
  */
 
-export interface HttpRequest {
-  method: 'GET' | 'POST';
-  url: string;
-  jsonBody?: unknown;
-  /** True: only find out whether the server answers; the answer itself cannot be read. */
-  opaque?: boolean;
-}
-
-/** Resolves with the answer. Rejects when the browser blocks the request or nothing answers. */
-export type HttpSend = (request: HttpRequest) => Promise<{ status: number; body: string }>;
+import type { HttpSend } from '../core/http';
 
 export const fetchSend: HttpSend = (request) => {
   const init: RequestInit = { method: request.method };
@@ -31,6 +22,10 @@ export const fetchSend: HttpSend = (request) => {
     init.headers = { 'Content-Type': 'application/json' };
     init.body = JSON.stringify(request.jsonBody);
   }
+  if (request.formBody !== undefined) {
+    init.headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+    init.body = encodeForm(request.formBody);
+  }
 
   return fetch(request.url, init).then((response) => {
     if (request.opaque) {
@@ -39,3 +34,10 @@ export const fetchSend: HttpSend = (request) => {
     return response.text().then((body) => ({ status: response.status, body }));
   });
 };
+
+/** Turns { a: '1', b: 'x y' } into 'a=1&b=x%20y'. */
+function encodeForm(fields: { [name: string]: string }): string {
+  return Object.keys(fields)
+    .map((name) => encodeURIComponent(name) + '=' + encodeURIComponent(fields[name] ?? ''))
+    .join('&');
+}

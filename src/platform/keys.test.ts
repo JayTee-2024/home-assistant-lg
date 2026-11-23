@@ -19,9 +19,12 @@ it('names the remote keys', () => {
   for (const [code, name] of expected) expect(remoteKeyFromCode(code)).toBe(name);
 });
 
-it('treats Backspace and Escape as back, for desktop development', () => {
-  expect(remoteKeyFromCode(8)).toBe('back');
+it('treats Escape as back, for desktop development', () => {
   expect(remoteKeyFromCode(27)).toBe('back');
+});
+
+it('does not treat Backspace as back, so deleting text never leaves a screen', () => {
+  expect(remoteKeyFromCode(8)).toBeNull();
 });
 
 it('returns null for any other key', () => {

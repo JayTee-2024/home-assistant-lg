@@ -27,8 +27,8 @@ const KEY_NAMES: { [keyCode: number]: RemoteKey } = {
   13: 'ok',
   // 461 is webOS's own code for the remote's Back button.
   461: 'back',
-  // Backspace and Escape, so Back can be pressed on a desktop keyboard during development.
-  8: 'back',
+  // Escape, so Back can be pressed on a desktop keyboard during development. Backspace is
+  // deliberately not here: deleting a character in a text field must never mean Back.
   27: 'back',
   403: 'red',
   404: 'green',

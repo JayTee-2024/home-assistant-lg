@@ -9,7 +9,7 @@
  */
 
 import { CLIENT_ID } from '../core/client-id';
-import type { HttpRequest, HttpSend } from '../platform/http';
+import type { HttpRequest, HttpSend } from '../core/http';
 import type { SocketLike } from '../platform/websocket';
 
 /** How long a probe waits before giving up. */

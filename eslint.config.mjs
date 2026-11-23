@@ -1,7 +1,7 @@
 // Lint rules: the typescript-eslint recommended set, plus three rules of this project's own.
 //
 //   1. `any` is forbidden outright.
-//   2. Lasting code (src/core, src/platform) must not import from the throwaway TV proof.
+//   2. The layers: src/core imports from no other src folder, and so on (see layerRule below).
 //   3. App code must not use the browser features listed below, which Chromium 53 lacks.
 //
 // Rules 2 and 3 are tested in scripts/lint-rules.test.mjs.
@@ -35,6 +35,27 @@ const missingFeatureRules = Object.entries(MISSING_IN_CHROMIUM_53).map(([name, c
   message: `Chromium 53 (webOS TV 4.x) does not have ${name}. It arrived in Chrome ${chrome}.`,
 }));
 
+/** Builds the rule that stops the files in `files` importing from the named src folders. */
+function layerRule(files, forbiddenFolders) {
+  return {
+    files,
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: forbiddenFolders.map((folder) => ({
+            group: [`**/${folder}/**`],
+            message:
+              folder === 'proof'
+                ? 'src/proof is throwaway. Lasting code must not depend on it.'
+                : `This folder must not import from src/${folder}. See "Layers" in the README.`,
+          })),
+        },
+      ],
+    },
+  };
+}
+
 export default tseslint.config(
   { ignores: ['dist/', 'node_modules/', '.superpowers/'] },
   ...tseslint.configs.recommended,
@@ -43,22 +64,11 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'error',
     },
   },
-  {
-    files: ['src/core/**', 'src/platform/**'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['**/proof/**'],
-              message: 'src/proof is throwaway. Lasting code must not depend on it.',
-            },
-          ],
-        },
-      ],
-    },
-  },
+  // The layers. Each folder may import only from the folders below it in this list:
+  //   app > screens > devices > core, with platform beside them importing only core.
+  layerRule(['src/core/**'], ['platform', 'devices', 'screens', 'app', 'proof']),
+  layerRule(['src/platform/**'], ['devices', 'screens', 'app', 'proof']),
+  layerRule(['src/devices/**'], ['platform', 'screens', 'app', 'proof']),
   {
     // Tests run on this computer's Node, not on the TV, so they are left out.
     files: ['src/**'],

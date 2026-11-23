@@ -57,3 +57,35 @@ describe('browser features that Chromium 53 lacks', () => {
     expect(await rulesBrokenBy(code, 'scripts/example.mjs')).toEqual([]);
   });
 });
+
+describe('layers only depend downwards', () => {
+  const importing = (path) => `import { x } from '${path}';\nexport const y = x;\n`;
+
+  it.each(['../platform/http', '../devices/registry', '../screens/home/HomeScreen', '../app/App'])(
+    'objects when a core file imports %s',
+    async (path) => {
+      expect(await rulesBrokenBy(importing(path), 'src/core/example.ts')).toContain(
+        'no-restricted-imports',
+      );
+    },
+  );
+
+  it.each(['../../screens/home/HomeScreen', '../../platform/http', '../../app/App'])(
+    'objects when a device type file imports %s',
+    async (path) => {
+      expect(await rulesBrokenBy(importing(path), 'src/devices/light/example.ts')).toContain(
+        'no-restricted-imports',
+      );
+    },
+  );
+
+  it('lets a device type file import from core', async () => {
+    expect(
+      await rulesBrokenBy(importing('../../core/home-assistant'), 'src/devices/light/example.ts'),
+    ).toEqual([]);
+  });
+
+  it('lets a core file import another core file', async () => {
+    expect(await rulesBrokenBy(importing('./layout'), 'src/core/example.ts')).toEqual([]);
+  });
+});

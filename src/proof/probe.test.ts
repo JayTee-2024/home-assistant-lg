@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { CLIENT_ID } from '../core/client-id';
-import type { HttpRequest } from '../platform/http';
+import type { HttpRequest } from '../core/http';
 import type { SocketLike } from '../platform/websocket';
 import {
   buildProbes,
