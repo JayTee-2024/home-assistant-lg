@@ -274,7 +274,8 @@ A second TV is set up separately.
 
 ## How it is built
 
-- **Language and UI:** TypeScript and Preact.
+- **Language and UI:** TypeScript and Preact 10. Preact 11 needs Chrome 71 or newer, so it cannot be used
+  while webOS 4 is supported.
 - **Build target:** Chromium 53. The exact bundler and settings are the builder's choice.
 - **Layout:** no CSS grid. Cards are placed by the app from their grid coordinates.
 - **Structure:** see "Readable and extendable code" below.
