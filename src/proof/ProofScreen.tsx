@@ -13,6 +13,7 @@ import { DEFAULT_ADDRESS, normaliseAddress } from '../core/address';
 import { fetchSend } from '../platform/http';
 import { remoteKeyFromCode } from '../platform/keys';
 import { openWebSocket } from '../platform/websocket';
+import { nextControlIndex } from './move-focus';
 import {
   buildProbes,
   decideSignInRoute,
@@ -41,7 +42,7 @@ export function ProofScreen() {
   const [running, setRunning] = useState(false);
   const [lastKey, setLastKey] = useState('none yet');
 
-  // The three controls, top to bottom, that Up and Down move between.
+  // The three controls, left to right, that the arrows move between.
   const addressField = useRef<HTMLInputElement>(null);
   const runButton = useRef<HTMLButtonElement>(null);
   const closeButton = useRef<HTMLButtonElement>(null);
@@ -53,10 +54,12 @@ export function ProofScreen() {
       const key = remoteKeyFromCode(event.keyCode);
       setLastKey((key ?? 'unknown') + ' (' + event.keyCode + ')');
 
-      if (key !== 'up' && key !== 'down') return;
       const controls = [addressField.current, runButton.current, closeButton.current];
       const current = controls.indexOf(document.activeElement as HTMLInputElement);
-      const next = Math.max(0, Math.min(controls.length - 1, current + (key === 'down' ? 1 : -1)));
+      const next = nextControlIndex(current, key, controls.length);
+
+      // A key that moves nowhere is left alone, so Left still moves the cursor in the address.
+      if (next === null || next === current) return;
       controls[next]?.focus();
       event.preventDefault();
     };
