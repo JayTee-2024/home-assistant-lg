@@ -6,6 +6,9 @@
  * replaces the picture once it arrives. Live video starts with the sound off. Closing the view
  * ends the live session.
  *
+ * When live video stops, a camera whose picture is its last recording (Ring) labels it
+ * "Updating picture…" until Ring's recording of the live view arrives (see picture-updates.ts).
+ *
  * Live video is only started on request: each live view wakes a Ring doorbell and starts a
  * session with Ring. The session's states are in src/core/live-video.ts; the WebRTC work
  * behind `liveVideo` is in src/platform/live-video.ts.
@@ -19,8 +22,9 @@ import {
   type LiveVideo,
 } from '../../core/live-video';
 import type { PanelProps } from '../device-type';
-import { CameraPicture } from './CameraPicture';
-import { cameraControls } from './model';
+import { CameraStill } from './CameraStill';
+import { noteLiveStopped } from './picture-updates';
+import { cameraControls, readCamera } from './model';
 
 /** How often the still picture is fetched again: quick, since someone is looking at it. */
 const PANEL_REFRESH_MS = 2000;
@@ -39,6 +43,8 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
   };
   const [isMuted, setIsMuted] = useState(true);
   const session = useRef<LiveVideo | null>(null);
+  // The live stream, so stopping can end its tracks (see stopSession).
+  const stream = useRef<MediaStream | null>(null);
   const video = useRef<HTMLVideoElement>(null);
   const liveButton = useRef<HTMLButtonElement>(null);
 
@@ -81,16 +87,37 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
     if (isLost && liveButton.current !== null) liveButton.current.focus();
   }, [state]);
 
+  // The latest recording id, for noting when live view stops (see picture-updates.ts).
+  const recordingNow = useRef<string | null>(null);
+  recordingNow.current = readCamera(entity).recordingId;
+
   function stopSession() {
+    const element = video.current;
+    // A camera whose picture is its last recording (Ring) records the live view too: its
+    // picture says "Updating picture…" until that recording arrives.
+    const recordingId = recordingNow.current;
+    // 'ended' counts too: Ring cut a session that was playing.
+    const wasPlaying = stateNow.current === 'playing' || stateNow.current === 'ended';
+    if (wasPlaying && recordingId !== null) {
+      noteLiveStopped(entityId, { at: Date.now(), recordingId });
+    }
     if (session.current !== null) {
       session.current.stop();
       session.current = null;
     }
-    const element = video.current;
+    // End the stream's tracks and empty the player. On the LG C9 the video is drawn by a
+    // hardware decoder, and the screen stays black over it until the decoder is shut down.
+    // Without this it only shut down when the browser next cleared away unused objects,
+    // 20 seconds to a minute later.
+    if (stream.current !== null) {
+      stream.current.getTracks().forEach((track) => track.stop());
+      stream.current = null;
+    }
     if (element !== null) {
       element.pause();
-      // Let go of the stream, so the TV stops decoding it.
       (element as HTMLVideoElement & { srcObject: MediaStream | null }).srcObject = null;
+      element.removeAttribute('src');
+      element.load();
     }
   }
 
@@ -101,9 +128,10 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
     let thisSession: LiveVideo | null = null;
     const isCurrent = () => session.current === thisSession;
     thisSession = liveVideo.start(entityId, {
-      onStream(stream) {
+      onStream(arrived) {
         if (!isCurrent() || video.current === null) return;
-        (video.current as HTMLVideoElement & { srcObject: MediaStream | null }).srcObject = stream;
+        stream.current = arrived;
+        (video.current as HTMLVideoElement & { srcObject: MediaStream | null }).srcObject = arrived;
         video.current.muted = isMutedNow.current;
         // play() rejects if the session is stopped before playback starts. Nothing to do then.
         video.current.play().catch(() => undefined);
@@ -141,14 +169,17 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
 
   return (
     <div class="camera-view">
-      <CameraPicture entity={entity} homeAddress={homeAddress} refreshMs={PANEL_REFRESH_MS} />
-      {/* Always in the page, so the stream has somewhere to go; shown only once it plays. */}
-      <video
-        ref={video}
-        class={'camera-live' + (state === 'playing' ? '' : ' camera-live-hidden')}
-        autoPlay
-        muted
-      />
+      <CameraStill entity={entity} homeAddress={homeAddress} refreshMs={PANEL_REFRESH_MS} />
+      {/* In the page only while live: on the TV a video player left in the page keeps the
+          screen black for a while after it stops. Shown only once the picture plays. */}
+      {(state === 'connecting' || state === 'playing') && (
+        <video
+          ref={video}
+          class={'camera-live' + (state === 'playing' ? '' : ' camera-live-hidden')}
+          autoPlay
+          muted
+        />
+      )}
 
       {canGoLive && (
         <div class="camera-actions">

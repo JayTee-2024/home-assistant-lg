@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.1
+
+- A Ring camera's picture is the first frame of its last recording, not a current view (that is what
+  Home Assistant serves for Ring). It is now labelled **Last recording**.
+- Ring records a live view as an event too. After watching live, the picture says **Updating
+  picture…** until Ring's recording arrives (usually within a minute), then shows it.
+
 ## 1.1.0
 
 - Cameras open full screen: the picture fills the screen's height, with the name, the room and the

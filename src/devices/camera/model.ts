@@ -16,6 +16,12 @@ export interface CameraView {
   isAvailable: boolean;
   /** The picture's path on the Home Assistant server, or null when there is none. */
   picturePath: string | null;
+  /**
+   * Which recording the picture comes from (`last_video_id`), for cameras whose picture is
+   * their last recording rather than a current view, such as Ring. Null for other cameras.
+   * See picture-updates.ts.
+   */
+  recordingId: string | null;
 }
 
 export function readCamera(entity: EntityState): CameraView {
@@ -23,7 +29,15 @@ export function readCamera(entity: EntityState): CameraView {
   return {
     isAvailable: available,
     picturePath: available ? readText(entity, 'entity_picture') : null,
+    recordingId: available ? readRecordingId(entity) : null,
   };
+}
+
+/** `last_video_id`, as text. Ring's ids are large numbers, which may come as numbers or text. */
+function readRecordingId(entity: EntityState): string | null {
+  const value = entity.attributes['last_video_id'];
+  if (typeof value === 'number') return String(value);
+  return typeof value === 'string' ? value : null;
 }
 
 /**
