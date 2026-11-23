@@ -16,3 +16,5 @@ The shape is:
 - `states`: what Home Assistant reports for each entity (`entity_id`, `state`, `attributes`).
 - `entities`, `devices`, `areas`: the three registries, with the fields the app reads.
 - `user`: the signed-in user.
+
+`camera.png` is a small made-up picture that the stand-in Home Assistant serves as every camera's still.

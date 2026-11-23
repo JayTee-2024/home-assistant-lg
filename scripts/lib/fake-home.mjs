@@ -11,6 +11,11 @@
 // It is not a full Home Assistant. Anything it does not know answers with an error.
 // The real message shapes: https://developers.home-assistant.io/docs/api/websocket
 
+import { readFileSync } from 'node:fs';
+
+/** A small made-up picture, served as every camera's still. */
+const CAMERA_PICTURE = new URL('../../fixtures/camera.png', import.meta.url);
+
 export const FAKE_USERNAME = 'tv';
 export const FAKE_PASSWORD = 'tv';
 
@@ -20,7 +25,7 @@ const ACCESS_TOKEN_SECONDS = 1800;
 /**
  * @param sampleHome  the parsed contents of fixtures/sample-home.json
  */
-export function createFakeHome(sampleHome) {
+export function createFakeHome(sampleHome, cameraPicture = readFileSync(CAMERA_PICTURE)) {
   // Work on a copy, so the caller's sample home is never changed.
   const home = JSON.parse(JSON.stringify(sampleHome));
 
@@ -43,6 +48,13 @@ export function createFakeHome(sampleHome) {
   // ---- HTTP: signing in ----
 
   function handleHttp({ method, path, body }) {
+    // A camera's still picture. The stand-in serves the same made-up picture for every camera.
+    if (method === 'GET' && path.indexOf('/api/camera_proxy/') === 0) {
+      const entityId = path.slice('/api/camera_proxy/'.length);
+      if (findState(entityId) === undefined) return { status: 404, json: { message: 'Not found' } };
+      return { status: 200, contentType: 'image/png', bytes: cameraPicture };
+    }
+
     if (method === 'GET' && path === '/auth/providers') {
       return {
         status: 200,
@@ -267,6 +279,21 @@ export function createFakeHome(sampleHome) {
         turnOn ? 'on' : 'off',
         domain === 'light' ? lightAttributes(state, data, turnOn) : {},
       );
+      return null;
+    }
+
+    if (key === 'climate.set_temperature') {
+      setState(entityId, state.state, { temperature: data.temperature });
+      return null;
+    }
+    if (key === 'climate.set_hvac_mode') {
+      setState(entityId, data.hvac_mode, {
+        hvac_action: data.hvac_mode === 'off' ? 'off' : 'heating',
+      });
+      return null;
+    }
+    if (key === 'climate.set_preset_mode') {
+      setState(entityId, state.state, { preset_mode: data.preset_mode });
       return null;
     }
 

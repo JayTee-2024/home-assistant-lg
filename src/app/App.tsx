@@ -450,6 +450,7 @@ export function App() {
     );
   }
 
+  const homeAddress = saved.signIn === null ? '' : saved.signIn.address;
   const panelDevice = overlay.kind === 'panel' ? findDevice(devices, overlay.deviceId) : null;
 
   return (
@@ -460,6 +461,7 @@ export function App() {
         pageEntry={pageEntry}
         devices={devices}
         home={shownHome}
+        homeAddress={homeAddress}
         isReconnecting={status === 'reconnecting'}
         onCardPress={pressCard}
         onCardMore={(deviceId) => openOverlay({ kind: 'panel', deviceId })}
@@ -469,7 +471,13 @@ export function App() {
       />
 
       {panelDevice !== null && (
-        <PanelOverlay device={panelDevice} home={shownHome} onRun={run} onClose={closeOverlay} />
+        <PanelOverlay
+          device={panelDevice}
+          home={shownHome}
+          homeAddress={homeAddress}
+          onRun={run}
+          onClose={closeOverlay}
+        />
       )}
 
       {overlay.kind === 'settings' && (

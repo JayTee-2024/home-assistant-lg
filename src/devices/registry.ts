@@ -11,6 +11,7 @@
 
 import { binarySensorType } from './binary-sensor';
 import { buttonType } from './button';
+import { cameraType } from './camera';
 import { climateType } from './climate';
 import type { DeviceType } from './device-type';
 import { lightType } from './light';
@@ -18,6 +19,7 @@ import { sensorType } from './sensor';
 import { switchType } from './switch';
 
 export const DEVICE_TYPES: DeviceType[] = [
+  cameraType,
   climateType,
   lightType,
   switchType,

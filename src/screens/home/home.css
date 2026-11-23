@@ -189,3 +189,18 @@
 .page-arrow-right {
   right: 0.5rem;
 }
+
+/* ---- A camera card: the picture fills the space between the top and the name ---- */
+
+.card-camera .card-top {
+  flex: 1;
+  min-height: 0;
+}
+
+.card-camera .card-icon {
+  display: none;
+}
+
+.card-camera .face {
+  margin: 0 0 1rem;
+}

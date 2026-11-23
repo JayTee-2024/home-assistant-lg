@@ -63,10 +63,18 @@ describe('the sample home, sorted by the real types', () => {
     expect(findDevice(devices, 'entity:input_boolean.guest_mode')?.mainPart?.typeId).toBe('switch');
   });
 
-  it('gives the doorbell its two binary sensors and its battery as parts', () => {
+  it('leads the doorbell with its camera, as a large card', () => {
+    const ring = findDevice(devices, 'device:dev_ring');
+
+    expect(ring?.mainPart?.typeId).toBe('camera');
+    expect(ring?.cardSize).toBe('large');
+  });
+
+  it('gives the doorbell its camera, two binary sensors and its battery as parts', () => {
     const parts = findDevice(devices, 'device:dev_ring')?.parts.map((part) => part.entityId);
 
     expect(parts).toEqual([
+      'camera.front_door',
       'binary_sensor.front_door_ding',
       'binary_sensor.front_door_motion',
       'sensor.front_door_battery',

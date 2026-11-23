@@ -29,6 +29,8 @@ export interface HomeScreenProps {
   pageEntry: PageEntry | null;
   devices: Device[];
   home: HomeSnapshot;
+  /** The Home Assistant address, for things fetched from it directly, such as camera pictures. */
+  homeAddress: string;
   /** True while the connection to Home Assistant is down. */
   isReconnecting: boolean;
   onCardPress(deviceId: string): void;
@@ -110,6 +112,7 @@ export function HomeScreen(props: HomeScreenProps) {
                 isFirst={place === firstCard}
                 device={findDevice(props.devices, place.deviceId)}
                 home={props.home}
+                homeAddress={props.homeAddress}
                 onPress={() => props.onCardPress(place.deviceId)}
                 onMore={() => props.onCardMore(place.deviceId)}
               />

@@ -27,11 +27,15 @@ export interface Action {
 /** What a type's card is given. */
 export interface CardProps {
   entity: EntityState;
+  /** The Home Assistant address, for things fetched from it directly, such as a camera's picture. */
+  homeAddress: string;
 }
 
 /** What a type's panel is given. `run` carries out an action. */
 export interface PanelProps {
   entity: EntityState;
+  /** The Home Assistant address, for things fetched from it directly, such as a camera's picture. */
+  homeAddress: string;
   run(action: Action): void;
 }
 

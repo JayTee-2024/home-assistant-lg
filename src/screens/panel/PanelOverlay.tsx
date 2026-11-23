@@ -16,6 +16,8 @@ import { CLOSE_ICON, Icon } from '../shared/Icon';
 export interface PanelOverlayProps {
   device: Device;
   home: HomeSnapshot;
+  /** The Home Assistant address, for things fetched from it directly, such as camera pictures. */
+  homeAddress: string;
   onRun(action: Action): void;
   onClose(): void;
 }
@@ -44,8 +46,11 @@ export function PanelOverlay(props: PanelOverlayProps) {
           const PartPanel = type.Panel;
           return (
             <section class="panel-part" key={part.entityId}>
-              {device.parts.length > 1 && <h2 class="panel-part-name">{part.name}</h2>}
-              <PartPanel entity={entity} run={props.onRun} />
+              {/* A heading only where it adds something: not for a part named like its device. */}
+              {device.parts.length > 1 && part.name !== device.name && (
+                <h2 class="panel-part-name">{part.name}</h2>
+              )}
+              <PartPanel entity={entity} homeAddress={props.homeAddress} run={props.onRun} />
             </section>
           );
         })}

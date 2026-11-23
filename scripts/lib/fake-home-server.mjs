@@ -36,6 +36,11 @@ export function startFakeHomeServer(sampleHome, port) {
       const body = parseBody(request.headers['content-type'], text);
       const answer = home.handleHttp({ method: request.method, path, body });
 
+      if (answer.bytes !== undefined) {
+        response.writeHead(answer.status, { 'Content-Type': answer.contentType });
+        response.end(answer.bytes);
+        return;
+      }
       response.writeHead(answer.status, { 'Content-Type': 'application/json' });
       response.end(JSON.stringify(answer.json));
     });

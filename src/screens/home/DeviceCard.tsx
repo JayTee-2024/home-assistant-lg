@@ -21,6 +21,8 @@ export interface DeviceCardProps {
   /** null when Home Assistant no longer has the device this card was made for. */
   device: Device | null;
   home: HomeSnapshot;
+  /** The Home Assistant address, passed on to the device type's card. */
+  homeAddress: string;
   /** A click on the card. (OK on the remote is handled by the app, to tell short from long.) */
   onPress(): void;
   /** Opens the device's panel. */
@@ -71,7 +73,7 @@ export function DeviceCard(props: DeviceCardProps) {
 
   return (
     <div
-      class={'card' + (isActive ? ' card-active' : '')}
+      class={'card card-' + mainType.id + (isActive ? ' card-active' : '')}
       style={style}
       role="button"
       aria-label={device.name}
@@ -85,7 +87,7 @@ export function DeviceCard(props: DeviceCardProps) {
         <div class="card-icon">
           <Icon path={mainType.icon} />
         </div>
-        <MainCard entity={mainEntity} />
+        <MainCard entity={mainEntity} homeAddress={props.homeAddress} />
       </div>
 
       <div class="card-names">

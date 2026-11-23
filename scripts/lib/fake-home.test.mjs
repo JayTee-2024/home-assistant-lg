@@ -262,3 +262,52 @@ describe('making the stand-in misbehave, for tests', () => {
     expect(home.openSockets()).toBe(0);
   });
 });
+
+describe('camera pictures', () => {
+  it('serves a picture for a camera, as a PNG', () => {
+    const answer = createFakeHome(sampleHome).handleHttp({
+      method: 'GET',
+      path: '/api/camera_proxy/camera.front_door',
+      body: {},
+    });
+
+    expect(answer.status).toBe(200);
+    expect(answer.contentType).toBe('image/png');
+    expect(answer.bytes.subarray(1, 4).toString()).toBe('PNG');
+  });
+
+  it('answers 404 for a camera it does not have', () => {
+    expect(
+      createFakeHome(sampleHome).handleHttp({
+        method: 'GET',
+        path: '/api/camera_proxy/camera.nope',
+        body: {},
+      }).status,
+    ).toBe(404);
+  });
+});
+
+describe('heating', () => {
+  it('sets the target temperature, the mode and the preset of a thermostat', () => {
+    const home = createFakeHome(sampleHome);
+    const { socket } = openSignedInSocket(home);
+    const call = (id, service, data) =>
+      socket.receive({
+        id,
+        type: 'call_service',
+        domain: 'climate',
+        service,
+        service_data: data,
+        target: { entity_id: 'climate.living_room' },
+      });
+
+    call(1, 'set_temperature', { temperature: 22.5 });
+    call(2, 'set_preset_mode', { preset_mode: 'away' });
+    call(3, 'set_hvac_mode', { hvac_mode: 'off' });
+
+    const tado = home.states().filter((state) => state.entity_id === 'climate.living_room')[0];
+    expect(tado.attributes.temperature).toBe(22.5);
+    expect(tado.attributes.preset_mode).toBe('away');
+    expect(tado.state).toBe('off');
+  });
+});
