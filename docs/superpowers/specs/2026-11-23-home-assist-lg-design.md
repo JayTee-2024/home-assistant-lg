@@ -422,6 +422,40 @@ Added during plan 4 (`docs/superpowers/plans/2026-11-23-media-covers-fans-vacuum
 - **A vacuum's error** reads "Needs attention"; Return to dock stays available.
 - **A non-admin Home Assistant user** can do everything the app needs. Checked by Simon on 2026-11-23.
 
+## Plan 6: live camera view and the Back key (agreed with Simon, 23 November 2026)
+
+**Why:** Simon wants to open a camera and watch it live from the sofa. A doorbell picture that pops up
+by itself when someone rings is a "very nice to have" for later, not part of this.
+
+**What a throwaway test on the C9 proved:** Home Assistant offers his Ring doorbell live over WebRTC
+only (`camera/capabilities` → `frontend_stream_types: ["web_rtc"]`). The TV's Chromium 53 has WebRTC
+under its old name, `webkitRTCPeerConnection`, and plays Ring's H264 and Opus. It works when the offer
+asks for audio and video only, waits for the TV's network candidates before sending, and has no data
+channel: with a data channel Ring's answer has fewer channels than the offer, and the TV refuses it.
+
+**Decided with Simon:**
+- A device whose main part is a camera opens full screen instead of in the popup box. The picture fills
+  the screen's height and keeps its shape. A see-through bar across the top holds the name, the room,
+  the device's other parts in one line (doorbell, motion, battery), the buttons, and the close button.
+- The still picture shows first. **Watch live** starts live video, because each live view wakes a Ring
+  doorbell and starts a session with Ring.
+- Sound starts off; **Sound on** / **Sound off** switches it.
+- Closing the view ends the live session at once. When the session ends by itself (Ring cuts it off
+  after a few minutes) or the connection fails, the view says so and the button becomes **Watch
+  again**.
+- **Watch live** appears only for cameras Home Assistant offers WebRTC for. Others keep refreshing stills.
+- Back on the sign-in screen steps back a form (two-step code or access token → username and password;
+  username and password → address) instead of leaving the app. With the TV keyboard open, Back still
+  only closes the keyboard.
+
+**Approaches considered for live video:** WebRTC through Home Assistant (chosen: the only route Ring
+offers, and proven on the TV); HLS through Home Assistant with a JavaScript player (only for cameras
+with a plain video stream, so not Ring; could be added later for cameras without WebRTC); Home
+Assistant's MJPEG stream (for Ring it repeats the same old snapshot, so not live).
+
+**Left to the builder:** how the session is timed out when no picture arrives; exact wording and layout
+details within the sketch above.
+
 ## Left to the builder
 
 - The app's ID, icon and version scheme.
