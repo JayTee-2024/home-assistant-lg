@@ -86,6 +86,8 @@ To update, download the newer `.ipk` and install it the same way. Your sign-in a
 4. To move cards or add pages, open **Settings** and choose **Reorganise layout**.
 5. Select a card and press **OK** for its main action, such as switching a light on or off. Hold **OK**
    for all its controls.
+6. A camera opens full screen when you press or hold **OK** on it. Choose **Watch live** to see it
+   live, where Home Assistant offers live video for it; sound starts off.
 
 Locks, alarms, and doors, garage doors and gates are deliberately not supported, so nothing on the TV
 can open your home. Devices like these are listed in Settings as **Not supported yet**.
