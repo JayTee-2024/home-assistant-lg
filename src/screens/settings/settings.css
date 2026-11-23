@@ -115,6 +115,72 @@
   font-size: 1.5rem;
 }
 
+/* ---- About ---- */
+
+.about-app {
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0 1rem;
+}
+
+.about-icon {
+  width: 6rem;
+  height: 6rem;
+  margin-right: 1.5rem;
+}
+
+.about-name {
+  font-size: 2.25rem;
+  font-weight: 600;
+}
+
+.about-version {
+  color: #a7b0bd;
+  font-size: 1.375rem;
+}
+
+.about-facts {
+  display: flex;
+}
+
+.about-facts .settings-fact {
+  margin-right: 5rem;
+}
+
+.about-promo {
+  max-width: 60rem;
+  margin-top: 2rem;
+  padding: 1.75rem 2rem;
+  border: 0.0625rem solid #3a2c12;
+  border-radius: 1rem;
+  background: #1a1f27;
+}
+
+.about-promo-label {
+  color: #a7b0bd;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.about-promo-name {
+  margin-top: 0.5rem;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.about-promo-text {
+  margin: 0.75rem 0 1rem;
+  color: #c9d0da;
+}
+
+.about-promo-address {
+  color: #ffb454;
+  font-size: 1.875rem;
+  font-weight: 600;
+}
+
 /* ---- The device picker ---- */
 
 .picker-room {

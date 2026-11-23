@@ -4,6 +4,7 @@
  *   Devices            the device picker
  *   Reorganise layout  leaves Settings for the reorganise mode
  *   Connection         the address, the signed-in user, and Sign out
+ *   About              what the app is, its version and licence, and a word about Games Unleashed
  *
  * The app's version is shown in small text at the bottom of the list.
  *
@@ -16,6 +17,7 @@ import type { Device, Room } from '../../core/devices';
 import type { Layout } from '../../core/layout';
 import { focusFirst, topScope } from '../shared/focus';
 import { CLOSE_ICON, Icon } from '../shared/Icon';
+import { AboutSection } from './AboutSection';
 import { ConnectionSection } from './ConnectionSection';
 import { DevicePicker } from './DevicePicker';
 
@@ -32,7 +34,7 @@ export interface SettingsScreenProps {
   onClose(): void;
 }
 
-type Section = 'devices' | 'connection';
+type Section = 'devices' | 'connection' | 'about';
 
 export function SettingsScreen(props: SettingsScreenProps) {
   const [section, setSection] = useState<Section>('devices');
@@ -67,6 +69,11 @@ export function SettingsScreen(props: SettingsScreenProps) {
             isCurrent={section === 'connection'}
             onPress={() => setSection('connection')}
           />
+          <SectionButton
+            label="About"
+            isCurrent={section === 'about'}
+            onPress={() => setSection('about')}
+          />
           <div class="settings-version">Version {APP_VERSION}</div>
         </nav>
 
@@ -95,6 +102,13 @@ export function SettingsScreen(props: SettingsScreenProps) {
                 userName={props.userName}
                 onSignOut={props.onSignOut}
               />
+            </div>
+          )}
+
+          {section === 'about' && (
+            <div>
+              <h1>About</h1>
+              <AboutSection />
             </div>
           )}
         </main>
