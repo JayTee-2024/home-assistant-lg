@@ -287,8 +287,9 @@ A second TV is set up separately.
 ## Readable and extendable code
 
 Simon's requirement: the code must be easy for a person to read and support, and laid out logically so a
-person can extend it. The reader to write for is a developer who knows C# and Angular and has never seen
-this codebase. The rules below are how the requirement is met **(my call)**; the builder may adjust the
+person can extend it. The whole app is TypeScript. The reader to write for is an experienced developer who
+is new to this codebase and may be new to TypeScript and Preact; Simon's own background is C# and Angular,
+neither of which is used here. The rules below are how the requirement is met **(my call)**; the builder may adjust the
 details but not the intent.
 
 ### One folder per device type
