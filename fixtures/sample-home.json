@@ -1,0 +1,587 @@
+{
+  "states": [
+    {
+      "entity_id": "light.lounge_lamp",
+      "state": "on",
+      "attributes": {
+        "friendly_name": "Lounge lamp",
+        "supported_color_modes": ["color_temp", "hs"],
+        "color_mode": "hs",
+        "brightness": 180,
+        "hs_color": [33.7, 67.1],
+        "rgb_color": [255, 180, 84],
+        "color_temp_kelvin": null,
+        "min_color_temp_kelvin": 1500,
+        "max_color_temp_kelvin": 9000,
+        "effect_list": ["effect_colorloop", "effect_pulse", "effect_stop"],
+        "effect": null,
+        "supported_features": 36
+      }
+    },
+    {
+      "entity_id": "sensor.lounge_lamp_rssi",
+      "state": "-52",
+      "attributes": {
+        "friendly_name": "Lounge lamp RSSI",
+        "device_class": "signal_strength",
+        "unit_of_measurement": "dBm"
+      }
+    },
+    {
+      "entity_id": "light.kitchen_ceiling",
+      "state": "off",
+      "attributes": {
+        "friendly_name": "Kitchen ceiling",
+        "supported_color_modes": ["color_temp", "hs"],
+        "color_mode": null,
+        "brightness": null,
+        "min_color_temp_kelvin": 1500,
+        "max_color_temp_kelvin": 9000,
+        "effect_list": ["effect_colorloop", "effect_pulse", "effect_stop"],
+        "supported_features": 36
+      }
+    },
+    {
+      "entity_id": "light.hall_light",
+      "state": "on",
+      "attributes": {
+        "friendly_name": "Hall light",
+        "supported_color_modes": ["brightness"],
+        "color_mode": "brightness",
+        "brightness": 128,
+        "supported_features": 32
+      }
+    },
+    {
+      "entity_id": "switch.tv_plug",
+      "state": "on",
+      "attributes": {
+        "friendly_name": "TV plug",
+        "device_class": "outlet"
+      }
+    },
+    {
+      "entity_id": "switch.tv_plug_led",
+      "state": "on",
+      "attributes": {
+        "friendly_name": "TV plug LED"
+      }
+    },
+    {
+      "entity_id": "sensor.tv_plug_signal",
+      "state": "-61",
+      "attributes": {
+        "friendly_name": "TV plug signal",
+        "device_class": "signal_strength",
+        "unit_of_measurement": "dBm"
+      }
+    },
+    {
+      "entity_id": "switch.kettle_plug",
+      "state": "off",
+      "attributes": {
+        "friendly_name": "Kettle plug",
+        "device_class": "outlet"
+      }
+    },
+    {
+      "entity_id": "sensor.kettle_plug_signal",
+      "state": "-70",
+      "attributes": {
+        "friendly_name": "Kettle plug signal",
+        "device_class": "signal_strength",
+        "unit_of_measurement": "dBm"
+      }
+    },
+    {
+      "entity_id": "climate.living_room",
+      "state": "heat",
+      "attributes": {
+        "friendly_name": "Living room heating",
+        "hvac_modes": ["off", "auto", "heat"],
+        "hvac_action": "heating",
+        "current_temperature": 20.5,
+        "temperature": 21.0,
+        "min_temp": 5.0,
+        "max_temp": 25.0,
+        "target_temp_step": 0.1,
+        "preset_modes": ["home", "away"],
+        "preset_mode": "home",
+        "supported_features": 401
+      }
+    },
+    {
+      "entity_id": "sensor.living_room_temperature",
+      "state": "20.5",
+      "attributes": {
+        "friendly_name": "Living room temperature",
+        "device_class": "temperature",
+        "unit_of_measurement": "°C",
+        "state_class": "measurement"
+      }
+    },
+    {
+      "entity_id": "sensor.living_room_humidity",
+      "state": "48",
+      "attributes": {
+        "friendly_name": "Living room humidity",
+        "device_class": "humidity",
+        "unit_of_measurement": "%",
+        "state_class": "measurement"
+      }
+    },
+    {
+      "entity_id": "sensor.living_room_heating_battery",
+      "state": "80",
+      "attributes": {
+        "friendly_name": "Living room heating battery",
+        "device_class": "battery",
+        "unit_of_measurement": "%"
+      }
+    },
+    {
+      "entity_id": "camera.front_door",
+      "state": "idle",
+      "attributes": {
+        "friendly_name": "Front door",
+        "access_token": "samplecameratoken",
+        "entity_picture": "/api/camera_proxy/camera.front_door?token=samplecameratoken",
+        "supported_features": 2
+      }
+    },
+    {
+      "entity_id": "binary_sensor.front_door_ding",
+      "state": "off",
+      "attributes": {
+        "friendly_name": "Front door ding",
+        "device_class": "occupancy"
+      }
+    },
+    {
+      "entity_id": "binary_sensor.front_door_motion",
+      "state": "off",
+      "attributes": {
+        "friendly_name": "Front door motion",
+        "device_class": "motion"
+      }
+    },
+    {
+      "entity_id": "sensor.front_door_battery",
+      "state": "74",
+      "attributes": {
+        "friendly_name": "Front door battery",
+        "device_class": "battery",
+        "unit_of_measurement": "%"
+      }
+    },
+    {
+      "entity_id": "lock.front_door",
+      "state": "locked",
+      "attributes": {
+        "friendly_name": "Front door lock",
+        "supported_features": 0
+      }
+    },
+    {
+      "entity_id": "cover.garage_door",
+      "state": "closed",
+      "attributes": {
+        "friendly_name": "Garage door",
+        "device_class": "garage",
+        "supported_features": 3
+      }
+    },
+    {
+      "entity_id": "sensor.tado_bridge_uptime",
+      "state": "2026-11-20T08:00:00+00:00",
+      "attributes": {
+        "friendly_name": "Tado bridge uptime",
+        "device_class": "timestamp"
+      }
+    },
+    {
+      "entity_id": "switch.spare_plug",
+      "state": "unavailable",
+      "attributes": {
+        "friendly_name": "Spare plug"
+      }
+    },
+    {
+      "entity_id": "scene.movie_night",
+      "state": "2026-11-22T20:15:00+00:00",
+      "attributes": {
+        "friendly_name": "Movie night"
+      }
+    },
+    {
+      "entity_id": "script.goodnight",
+      "state": "off",
+      "attributes": {
+        "friendly_name": "Goodnight",
+        "mode": "single"
+      }
+    },
+    {
+      "entity_id": "input_boolean.guest_mode",
+      "state": "off",
+      "attributes": {
+        "friendly_name": "Guest mode",
+        "editable": true
+      }
+    },
+    {
+      "entity_id": "automation.morning",
+      "state": "on",
+      "attributes": {
+        "friendly_name": "Morning routine"
+      }
+    },
+    {
+      "entity_id": "sun.sun",
+      "state": "below_horizon",
+      "attributes": {
+        "friendly_name": "Sun"
+      }
+    }
+  ],
+  "entities": [
+    {
+      "entity_id": "light.lounge_lamp",
+      "device_id": "dev_lifx_lamp",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": null,
+      "name": null,
+      "original_name": "Lounge lamp"
+    },
+    {
+      "entity_id": "sensor.lounge_lamp_rssi",
+      "device_id": "dev_lifx_lamp",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": "diagnostic",
+      "name": null,
+      "original_name": "RSSI"
+    },
+    {
+      "entity_id": "light.kitchen_ceiling",
+      "device_id": "dev_lifx_ceiling",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": null,
+      "name": null,
+      "original_name": "Kitchen ceiling"
+    },
+    {
+      "entity_id": "light.hall_light",
+      "device_id": "dev_lifx_white",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": null,
+      "name": "Hall light",
+      "original_name": "LIFX White 4F2A"
+    },
+    {
+      "entity_id": "switch.tv_plug",
+      "device_id": "dev_plug_tv",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": null,
+      "name": null,
+      "original_name": "TV plug"
+    },
+    {
+      "entity_id": "switch.tv_plug_led",
+      "device_id": "dev_plug_tv",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": "user",
+      "entity_category": null,
+      "name": null,
+      "original_name": "LED"
+    },
+    {
+      "entity_id": "sensor.tv_plug_signal",
+      "device_id": "dev_plug_tv",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": "diagnostic",
+      "name": null,
+      "original_name": "Signal"
+    },
+    {
+      "entity_id": "switch.kettle_plug",
+      "device_id": "dev_plug_kettle",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": null,
+      "name": null,
+      "original_name": "Kettle plug"
+    },
+    {
+      "entity_id": "sensor.kettle_plug_signal",
+      "device_id": "dev_plug_kettle",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": "diagnostic",
+      "name": null,
+      "original_name": "Signal"
+    },
+    {
+      "entity_id": "sensor.kettle_plug_voltage",
+      "device_id": "dev_plug_kettle",
+      "area_id": null,
+      "disabled_by": "integration",
+      "hidden_by": null,
+      "entity_category": null,
+      "name": null,
+      "original_name": "Voltage"
+    },
+    {
+      "entity_id": "climate.living_room",
+      "device_id": "dev_tado",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": null,
+      "name": null,
+      "original_name": "Living room heating"
+    },
+    {
+      "entity_id": "sensor.living_room_temperature",
+      "device_id": "dev_tado",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": null,
+      "name": null,
+      "original_name": "Temperature"
+    },
+    {
+      "entity_id": "sensor.living_room_humidity",
+      "device_id": "dev_tado",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": null,
+      "name": null,
+      "original_name": "Humidity"
+    },
+    {
+      "entity_id": "sensor.living_room_heating_battery",
+      "device_id": "dev_tado",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": "diagnostic",
+      "name": null,
+      "original_name": "Battery"
+    },
+    {
+      "entity_id": "camera.front_door",
+      "device_id": "dev_ring",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": null,
+      "name": null,
+      "original_name": "Front door"
+    },
+    {
+      "entity_id": "binary_sensor.front_door_ding",
+      "device_id": "dev_ring",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": null,
+      "name": null,
+      "original_name": "Ding"
+    },
+    {
+      "entity_id": "binary_sensor.front_door_motion",
+      "device_id": "dev_ring",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": null,
+      "name": null,
+      "original_name": "Motion"
+    },
+    {
+      "entity_id": "sensor.front_door_battery",
+      "device_id": "dev_ring",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": "diagnostic",
+      "name": null,
+      "original_name": "Battery"
+    },
+    {
+      "entity_id": "lock.front_door",
+      "device_id": "dev_lock",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": null,
+      "name": null,
+      "original_name": "Front door lock"
+    },
+    {
+      "entity_id": "cover.garage_door",
+      "device_id": "dev_garage",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": null,
+      "name": null,
+      "original_name": "Garage door"
+    },
+    {
+      "entity_id": "sensor.tado_bridge_uptime",
+      "device_id": "dev_bridge",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": "diagnostic",
+      "name": null,
+      "original_name": "Uptime"
+    },
+    {
+      "entity_id": "switch.spare_plug",
+      "device_id": "dev_noname",
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": null,
+      "name": null,
+      "original_name": "Spare plug"
+    },
+    {
+      "entity_id": "input_boolean.guest_mode",
+      "device_id": null,
+      "area_id": "living_room",
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": null,
+      "name": null,
+      "original_name": "Guest mode"
+    },
+    {
+      "entity_id": "automation.morning",
+      "device_id": null,
+      "area_id": null,
+      "disabled_by": null,
+      "hidden_by": null,
+      "entity_category": null,
+      "name": null,
+      "original_name": "Morning routine"
+    }
+  ],
+  "devices": [
+    {
+      "id": "dev_lifx_lamp",
+      "name": "LIFX Color A19",
+      "name_by_user": "Lounge lamp",
+      "area_id": "living_room",
+      "disabled_by": null
+    },
+    {
+      "id": "dev_lifx_ceiling",
+      "name": "Kitchen ceiling",
+      "name_by_user": null,
+      "area_id": "kitchen",
+      "disabled_by": null
+    },
+    {
+      "id": "dev_lifx_white",
+      "name": "Hall light",
+      "name_by_user": null,
+      "area_id": "hallway",
+      "disabled_by": null
+    },
+    {
+      "id": "dev_plug_tv",
+      "name": "TV plug",
+      "name_by_user": null,
+      "area_id": "living_room",
+      "disabled_by": null
+    },
+    {
+      "id": "dev_plug_kettle",
+      "name": "Kettle plug",
+      "name_by_user": null,
+      "area_id": "kitchen",
+      "disabled_by": null
+    },
+    {
+      "id": "dev_tado",
+      "name": "Living room heating",
+      "name_by_user": null,
+      "area_id": "living_room",
+      "disabled_by": null
+    },
+    {
+      "id": "dev_ring",
+      "name": "Front door",
+      "name_by_user": null,
+      "area_id": "hallway",
+      "disabled_by": null
+    },
+    {
+      "id": "dev_lock",
+      "name": "Front door lock",
+      "name_by_user": null,
+      "area_id": "hallway",
+      "disabled_by": null
+    },
+    {
+      "id": "dev_garage",
+      "name": "Garage door",
+      "name_by_user": null,
+      "area_id": null,
+      "disabled_by": null
+    },
+    {
+      "id": "dev_bridge",
+      "name": "Tado bridge",
+      "name_by_user": null,
+      "area_id": null,
+      "disabled_by": null
+    },
+    {
+      "id": "dev_noname",
+      "name": null,
+      "name_by_user": null,
+      "area_id": null,
+      "disabled_by": null
+    }
+  ],
+  "areas": [
+    {
+      "area_id": "living_room",
+      "name": "Living room"
+    },
+    {
+      "area_id": "kitchen",
+      "name": "Kitchen"
+    },
+    {
+      "area_id": "hallway",
+      "name": "Hallway"
+    }
+  ],
+  "user": {
+    "id": "sample-user",
+    "name": "TV",
+    "is_admin": false
+  }
+}
