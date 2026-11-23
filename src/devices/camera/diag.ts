@@ -13,6 +13,6 @@ export function diag(text: string): void {
     const line = document.createElement('div');
     line.textContent = ((Date.now() - started) / 1000).toFixed(1) + 's ' + text;
     box.appendChild(line);
-    while (box.childNodes.length > 12) box.removeChild(box.firstChild as Node);
+    while (box.childNodes.length > 20) box.removeChild(box.firstChild as Node);
   } catch (e) {}
 }

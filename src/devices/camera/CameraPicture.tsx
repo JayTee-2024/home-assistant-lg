@@ -9,7 +9,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import type { EntityState } from '../../core/home-assistant';
 import { pictureUrl, readCamera } from './model';
-import { diag } from './diag';
 
 export interface CameraPictureProps {
   entity: EntityState;
@@ -41,9 +40,7 @@ export function CameraPicture({ entity, homeAddress, refreshMs }: CameraPictureP
     };
 
     const loader = new Image();
-    const started = Date.now();
     loader.onload = () => {
-      diag('HA picture loaded in ' + (Date.now() - started) + 'ms');
       setShown(next);
       setFailed(false);
       planNext();
