@@ -6,3 +6,5 @@ dist/
 package-lock.json
 docs/
 .deploy/
+# Written by npm run release; kept exactly as generated.
+webosbrew/

@@ -1,0 +1,38 @@
+{
+  "paging": {
+    "page": 1,
+    "count": 1,
+    "maxPage": 1,
+    "itemsTotal": 1,
+    "prevUrl": null,
+    "nextUrl": null
+  },
+  "packages": [
+    {
+      "id": "net.badacid.homeassistlg",
+      "title": "Home Assist LG",
+      "iconUri": "https://raw.githubusercontent.com/JayTee-2024/home-assistant-lg/main/webos/largeIcon.png",
+      "manifestUrl": "https://github.com/JayTee-2024/home-assistant-lg/releases/latest/download/net.badacid.homeassistlg.manifest.json",
+      "manifest": {
+        "id": "net.badacid.homeassistlg",
+        "version": "0.4.0",
+        "type": "web",
+        "title": "Home Assist LG",
+        "appDescription": "Control your Home Assistant home with the TV remote.",
+        "iconUri": "https://raw.githubusercontent.com/JayTee-2024/home-assistant-lg/main/webos/largeIcon.png",
+        "sourceUrl": "https://github.com/JayTee-2024/home-assistant-lg",
+        "rootRequired": false,
+        "ipkUrl": "https://github.com/JayTee-2024/home-assistant-lg/releases/download/v0.4.0/net.badacid.homeassistlg_0.4.0_all.ipk",
+        "ipkSize": 48758,
+        "ipkHash": {
+          "sha256": "89d6e570d6ad16a6d939d8a3cd095c8662bf2e0d29071c69b5217635d5e6c7d5"
+        }
+      },
+      "pool": "main",
+      "requirements": {
+        "webosRelease": ">=4.0"
+      },
+      "shortDescription": "Control your Home Assistant home with the TV remote."
+    }
+  ]
+}

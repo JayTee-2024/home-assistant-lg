@@ -16,6 +16,7 @@
     "dev": "node scripts/dev.mjs",
     "dev:home": "node scripts/fake-home-assistant.mjs",
     "package": "npm run build && npm run check:bundle && node scripts/package.mjs",
+    "release": "npm run package && node scripts/release.mjs",
     "deploy": "npm run package && node scripts/deploy.mjs"
   },
   "dependencies": {
