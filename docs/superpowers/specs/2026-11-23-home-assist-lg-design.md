@@ -1,0 +1,306 @@
+# Home Assist LG: design
+
+**Date:** 2026-11-23
+**Status:** draft for Simon's review
+**Screen mockups:** https://claude.ai/artifact/WEjm2aL8jkdRvpdZCVX4i9 (five screens at 1920×1080; Simon approved these as the baseline)
+
+Lines marked **(my call)** are decisions Claude made that Simon has not explicitly agreed to. Everything else
+is Simon's decision or a fact found during the design conversation.
+
+## Intent
+
+An app for LG webOS TVs that controls a Home Assistant home with the TV remote. It is for Simon and for other
+Home Assistant users, each on their own TV with their own Home Assistant.
+
+The idea behind it: Home Assistant already sorts every device into a standard type (light, switch, climate and
+so on). The app has one control panel per type, so it works with any brand, including devices Simon does not
+own. People add devices to Home Assistant in Home Assistant, then choose on the TV which ones to show.
+
+It grew out of the Home Devices screen in `echo-show-assistant`, which does the same job on an Echo Show for
+lights, heating, speakers and plugs through Simon's own backend.
+
+## Goals
+
+- Open the app like any other TV app, full screen, and see the chosen devices as cards on a grid.
+- Control each device with the remote: one press for the everyday action, a panel for everything else.
+- Choose devices on the TV from what Home Assistant already has, grouped by room.
+- Arrange the cards: a "Reorganise layout" mode moves each card to a chosen place on the grid.
+- Work on any TV size (assume 32 inches as the smallest) by scaling, with no size-specific layouts.
+- Work for other people with no server of Simon's and no rooted TV.
+
+## Non-goals (first version)
+
+- Adding devices or integrations to Home Assistant from the TV.
+- Voice or microphone input.
+- Locks, alarms, and doors or garage doors. They appear in the picker with "Not supported yet".
+- Alerts when the app is not open (for example a doorbell pop-up over a programme).
+- Live camera video. Cameras show a still picture.
+- Renaming devices, resizing cards, or sharing a layout between TVs.
+- A generic card for types without a panel **(my call)**: anything outside the supported list shows
+  "Not supported yet". A read-only fallback card can come later.
+- Languages other than English **(my call)**.
+- Submitting to LG's Content Store. The app must not rule it out.
+
+## Anti-goals
+
+- Anything that lets whoever holds the remote unlock a door, open a garage or disarm an alarm.
+- Storing the user's Home Assistant password.
+- Needing a rooted TV, or any server besides the user's own Home Assistant.
+
+## Constraints
+
+- **Web engine.** webOS TV 4.x (2018 and 2019 models, including Simon's C9 on webOS 4.5) runs Chromium 53,
+  per LG's web engine table. It parses JavaScript up to ES2016 and does not have CSS grid layout. The build
+  must compile down to that, and the card grid must be positioned by the app's own code.
+- **Supported TVs** **(my call)**: webOS TV 4.0 and newer. Tested on the C9.
+- **Full screen.** A webOS app takes over the screen. Simon is happy with that.
+- **Input.** The Magic Remote pointer, and the arrow keys with OK and Back. Both must work everywhere.
+- **Home Assistant sign-in and browsers.** Tested against Simon's Home Assistant on 2026-11-23:
+  - `POST /auth/login_flow` from a plain program returns the username and password form, so an app can run
+    the sign-in itself.
+  - The same request marked as coming from a web page (any `Origin`, including `null` and `file://`) is
+    refused by Home Assistant's cross-origin check with HTTP 403.
+  - `/auth/token` accepts any origin.
+  - Whether webOS applies the cross-origin check to an installed app is unknown. See "First step".
+- **Tado allowance.** Tado limits API calls per day. Heating changes must be sent sparingly (see Heating).
+- **Shared screen.** A TV is used by everyone in the room, including guests.
+
+## Approaches considered
+
+1. **TypeScript with Preact, compiled for Chromium 53. Chosen by Simon.** A small component library that
+   still supports old browsers, plus the official Home Assistant connection library and the app's own remote
+   focus handling. One codebase covers the C9 and every newer TV. Cost: the remote navigation is written by us.
+2. **LG's Enact framework.** Built for TV apps and includes remote focus handling. Rejected: LG's guidance is
+   that the current generation is supported on webOS TV 6.0 and higher, and covering webOS 4 needs a
+   years-old release. That would exclude the C9 or split the code.
+3. **Angular.** Simon's home ground. Rejected: current Angular will not run on Chromium 53, and the versions
+   that would are out of support.
+
+A fourth option, plain TypeScript with no component library, was dropped early: the app has many stateful
+panels, and hand-written screen updates would be more code for no gain.
+
+## How it connects
+
+```
+TV app  ──  HTTP sign-in (once)  ──►  the user's Home Assistant
+        ──  WebSocket (always)   ──►  states, registries, service calls
+```
+
+The app talks only to the user's Home Assistant. There is no backend.
+
+### Sign-in
+
+Simon chose: sign in on the TV with a Home Assistant username and password, on the app's own screen.
+
+1. **Address.** The app tries `http://homeassistant.local:8123` first **(my call)**. If that fails, it asks
+   for the address. "Change" on the sign-in screen opens the same field. Any `http://` or `https://` address
+   is accepted.
+2. **Credentials.** The app starts a Home Assistant login flow, submits the username and password, and
+   handles a further step if Home Assistant asks for one (a two-step login code). Errors from Home Assistant
+   ("Invalid username or password") are shown as they are.
+3. **Key.** The flow ends with a code that the app exchanges at `/auth/token` for an access token and a
+   refresh token. The refresh token is the key the TV keeps. The password is never stored.
+4. **Fallback** **(my call)**: an "Advanced" link on the sign-in screen accepts a long-lived access token
+   typed or pasted in, for setups where the normal route fails.
+
+The sign-in screen carries the "Before you start" note from the mockup: Home Assistant running on the same
+network, a username and password (a separate user for the TV is suggested), and devices already added.
+
+**Sign out** lives in Settings, Connection. It asks Home Assistant to cancel the refresh token, removes it
+from the TV and returns to the sign-in screen. Signing in again is how credentials are changed. The layout
+is kept and reused if the next sign-in is to the same Home Assistant address; it is cleared if the address
+is different **(my call)**.
+
+### First step: test the sign-in route on the TV
+
+Before any other work, build a minimal app, install it on the C9, and have it call `/auth/login_flow`.
+
+- If the call succeeds, the app makes the sign-in requests itself.
+- If the TV applies the cross-origin check, the sign-in requests go through a small JavaScript service
+  bundled in the app package. A service is not a web page, so Home Assistant accepts it. The screens are
+  identical either way.
+
+The same minimal app proves the build chain: compiled for Chromium 53, packaged, installed and launched.
+
+### Live data
+
+After sign-in, everything goes over Home Assistant's WebSocket API, which has no cross-origin restriction:
+
+- entity states, kept current by subscription;
+- the device, entity and area registries, to group entities into devices and rooms;
+- service calls for every control.
+
+The official `home-assistant-js-websocket` library handles the connection, reconnection and token refresh.
+
+## What appears on screen
+
+### Devices, parts and cards
+
+Simon chose: the picker adds whole devices.
+
+- A **device** is a Home Assistant device: one physical thing, such as a Ring doorbell.
+- Its **parts** are its entities: the doorbell's camera, its "pressed" sensor, its battery sensor.
+- A **card** shows one device, assembled from the panels for its supported parts.
+
+Rules **(my call)**:
+
+- Disabled and hidden entities are ignored. Diagnostic and configuration entities are left off the card,
+  except a battery level.
+- The card's main control comes from the device's most significant part, in this order: camera, climate,
+  media player, vacuum, light, cover, fan, switch, then the rest.
+- Other supported parts appear as secondary readings or buttons on the card where there is room, and all of
+  them appear in the device's panel.
+- Unsupported parts of an otherwise supported device are left out.
+- A device with no supported part shows "Not supported yet" in the picker and cannot be added.
+- Things with no device (scenes, scripts, helpers, loose entities) are listed in the picker under their room
+  as items of their own, each with its own card.
+- Names and rooms come from Home Assistant.
+
+### Supported types (first version)
+
+Agreed with Simon: lights, switches and plugs, heating, media players, covers, fans, scenes and scripts,
+buttons, sensors, cameras and vacuums. `input_boolean` uses the switch panel **(my call)**.
+
+Each panel shows only the controls the entity says it supports.
+
+| Type | On the card | In the panel | OK on the card |
+|---|---|---|---|
+| `light` | On/off, brightness | Brightness, colour, white temperature, effects, as supported | Toggle |
+| `switch`, `input_boolean` | On/off | Same | Toggle |
+| `climate` | Current and target temperature, state | Target − / +, modes and presets the entity lists | Open panel |
+| `media_player` | What's playing, play/pause | Volume, previous/next, source, as supported | Play/pause |
+| `cover` | Open, closed or position | Open, close, stop, position, as supported | Open panel |
+| `fan` | On/off, speed | Speed, oscillate, presets, as supported | Toggle |
+| `scene`, `script`, `button` | A button | Same | Run or press |
+| `sensor` | The reading and its unit | Same | Nothing |
+| `binary_sensor` | The state in words for its kind (Open/Closed, Motion/Clear) | Same | Nothing |
+| `camera` | A still picture, refreshed every few seconds | The picture full size | Open panel |
+| `vacuum` | Status, battery | Start, pause, stop, return to dock | Open panel |
+
+**Not supported yet:** `lock`, `alarm_control_panel`, covers whose kind is a door, garage or gate, and every
+type not in the table.
+
+**Heating.** As in the Echo app: − and + change the shown target at once in the entity's own step, within
+its own minimum and maximum, and one change is sent about 1.5 seconds after the last press. The panel never
+polls the thermostat.
+
+### Card sizes **(my call)**
+
+Fixed by the device's main part, as in the mockup:
+
+- **Large, 2×2:** cameras, including doorbells.
+- **Wide, 2×1:** climate and media players.
+- **Small, 1×1:** everything else.
+
+## Screens
+
+The five mockups are the reference for layout and look.
+
+- **Title bar.** "Home Assist LG" on the left. On the right a settings button and a close button. Close
+  exits the app completely. The sign-in screen shows only close **(my call)**.
+- **Home screen.** The grid of cards. With no devices: "No devices yet" and an "Add devices" button.
+- **Settings.** Three sections **(my call)**: Devices (the picker), Reorganise layout, Connection (address,
+  signed-in user, Sign out).
+- **Device panel.** A large overlay for one device with every control. Back closes it.
+
+### Look **(my call, approved in the mockups)**
+
+Dark background. Amber marks anything that is on. A white outline marks what the remote is focused on.
+Type and controls are sized for reading from a sofa. Sizes scale with the screen, from one 1920×1080 design.
+
+### Grid and pages
+
+- The grid is 6 columns by 3 rows **(my call)**.
+- Simon chose pages: each page is a full screen, flipped left and right like a phone's home screen. A row
+  of dots shows which page is open **(my call)**.
+- A newly added device goes in the first free place that fits it, on a new page if needed **(my call)**.
+- Removing a device in the picker removes its card and leaves the gap.
+
+### Reorganise layout
+
+Reached from Settings. The grid shows every empty place, and each card shows a move marker.
+
+- **Pointer:** point at a card, hold OK and drag.
+- **Arrow keys:** OK picks a card up, the arrows move it, OK places it, Back puts it back.
+- Moving past the left or right edge carries the card to the neighbouring page; past the last page creates
+  a new one **(my call)**.
+- A card can be placed where it fits in free cells. Placed on a card of the same size, the two swap.
+  Otherwise the place is refused **(my call)**.
+- "Done" leaves the mode. Empty pages are removed.
+
+### Using the remote on the home screen
+
+Simon chose "card first, then a panel".
+
+- Arrows move between cards. Moving past the left or right edge flips the page.
+- **OK** does the card's main action (see the table).
+- **Holding OK** opens the device's panel. For types whose OK already opens the panel, a short press does it.
+- **Back** closes a panel, leaves Settings, and on the home screen follows LG's convention for the Back key.
+- **Pointer:** every visible control can be clicked directly. Clicking the card body acts like OK. A "more"
+  button on the card opens the panel **(my call)**.
+
+## What is saved
+
+On the TV only, in the app's own storage:
+
+- the Home Assistant address and the refresh token;
+- the layout: pages, and each card's device and place.
+
+A second TV is set up separately.
+
+## When things go wrong
+
+- **Home Assistant unreachable:** a banner on the home screen; the app keeps retrying; cards show their last
+  known state, marked as stale, and controls are disabled **(my call)**.
+- **Sign-in no longer accepted:** back to the sign-in screen with a short explanation. The layout is kept.
+- **A device is unavailable in Home Assistant:** its card is greyed and says "Unavailable".
+- **A device was removed from Home Assistant:** its card says so and offers to remove itself **(my call)**.
+- **A command fails:** a short message at the bottom of the screen with Home Assistant's reason; the card
+  returns to the real state.
+- **Instant feedback:** a press updates the card at once, and the next state from Home Assistant confirms
+  or corrects it.
+
+## Privacy and safety
+
+- The password is used once to sign in and is never stored.
+- The app contacts nothing except the user's Home Assistant. No analytics.
+- Locks, alarms and doors are excluded, as above.
+- The suggested separate Home Assistant user means the TV's access can be removed on its own.
+
+## How it is built
+
+- **Language and UI:** TypeScript and Preact.
+- **Build target:** Chromium 53. The exact bundler and settings are the builder's choice.
+- **Layout:** no CSS grid. Cards are placed by the app from their grid coordinates.
+- **Structure:** the logic is separate from the screens, as in `echo-show-assistant`:
+  - *core*: Home Assistant data to devices, parts and cards; what each entity supports; the layout and page
+    rules; the focus-movement rules. No screen code. Covered by automated tests.
+  - *screens*: Preact components for the cards, panels and pages.
+  - *platform*: remote keys, the pointer, closing the app, storage, and the sign-in route chosen by the first
+    step.
+- **Development:** in a desktop browser against a real Home Assistant, with regular checks on the C9. The
+  desktop browser applies the cross-origin check, so development sign-in uses the token fallback or a local
+  proxy.
+- **Delivery:** an installable `.ipk` package. Simon's C9 is rooted with Homebrew Channel and has root SSH,
+  which is the install route during development.
+
+## Order of work **(my call)**
+
+1. **First step:** the sign-in test and build-chain proof on the C9.
+2. **Foundation:** sign-in, connection, picker, grid with pages, reorganise, storage, error states, and the
+   panels for Simon's own devices: light, switch, climate, camera, sensor, binary sensor, button.
+3. **Remaining panels:** media player, cover, fan, scene and script, vacuum.
+4. **For other people:** install instructions and a package others can install through Homebrew Channel or
+   developer mode.
+
+## Left to the builder
+
+- The app's ID, icon and version scheme.
+- The bundler, test runner and polyfills needed for Chromium 53.
+- The fixed `client_id` address the app presents to Home Assistant at sign-in.
+- Exact Home Assistant message names, and checking each against the current Home Assistant developer
+  documentation. In particular: that a non-admin user can read the registries, and the call that cancels a
+  refresh token.
+- The colour panel's design for lights, usable with both the pointer and the arrow keys.
+- How often the camera picture refreshes on a card and in the panel.
+- Animation, kept light for TV hardware.
