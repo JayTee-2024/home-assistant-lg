@@ -5,10 +5,13 @@
  *   Reorganise layout  leaves Settings for the reorganise mode
  *   Connection         the address, the signed-in user, and Sign out
  *
+ * The app's version is shown in small text at the bottom of the list.
+ *
  * Back, or the close button, returns to the home screen.
  */
 
 import { useEffect, useState } from 'preact/hooks';
+import { APP_VERSION } from '../../core/app-version';
 import type { Device, Room } from '../../core/devices';
 import type { Layout } from '../../core/layout';
 import { focusFirst, topScope } from '../shared/focus';
@@ -64,6 +67,7 @@ export function SettingsScreen(props: SettingsScreenProps) {
             isCurrent={section === 'connection'}
             onPress={() => setSection('connection')}
           />
+          <div class="settings-version">Version {APP_VERSION}</div>
         </nav>
 
         <main class="settings-content" data-scrolls>

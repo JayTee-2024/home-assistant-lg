@@ -32,6 +32,14 @@
   border-right: 0.0625rem solid #2e3642;
 }
 
+/* Pushed to the bottom of the list by the automatic top margin. */
+.settings-version {
+  margin-top: auto;
+  padding-left: 1.5rem;
+  font-size: 1.25rem;
+  color: #7d8794;
+}
+
 .settings-section {
   display: flex;
   flex-direction: column;

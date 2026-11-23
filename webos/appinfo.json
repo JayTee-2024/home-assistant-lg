@@ -1,6 +1,6 @@
 {
   "id": "net.badacid.homeassistlg",
-  "version": "0.4.0",
+  "version": "1.0.0",
   "vendor": "Simon",
   "type": "web",
   "main": "index.html",
