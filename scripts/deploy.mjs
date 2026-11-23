@@ -9,6 +9,7 @@ import { spawn } from 'node:child_process';
 import { createReadStream, existsSync, readdirSync } from 'node:fs';
 import { APP_ID, readDeployConfig } from './lib/deploy-config.mjs';
 import { readInstallProgress } from './lib/install-output.mjs';
+import { installCommand, launchCommand } from './lib/tv-commands.mjs';
 
 const PACKAGE_FOLDER = 'dist';
 const REMOTE_PACKAGE = '/tmp/home-assist-lg.ipk';
@@ -112,19 +113,14 @@ if (copied.code !== 0) {
 // 5. Install. The service keeps printing progress until it is stopped, so watch the
 //    output and stop as soon as it reports the result.
 console.log('Installing ...');
-const installRequest = JSON.stringify({
-  id: 'com.ares.defaultName',
-  ipkUrl: REMOTE_PACKAGE,
-  subscribe: true,
+const installed = await runOnTv(installCommand(REMOTE_PACKAGE), {
+  onOutput: (output) => readInstallProgress(output) !== 'waiting',
+  timeoutMs: INSTALL_TIMEOUT_MS,
 });
-const installed = await runOnTv(
-  "luna-send -i -f luna://com.webos.appInstallService/dev/install '" + installRequest + "'",
-  {
-    onOutput: (output) => readInstallProgress(output) !== 'waiting',
-    timeoutMs: INSTALL_TIMEOUT_MS,
-  },
-);
 if (readInstallProgress(installed.output) !== 'installed') {
+  if (installed.output.trim() === '') {
+    fail('The TV gave no answer to the install request.');
+  }
   console.error(installed.output.trim());
   fail(
     installed.timedOut
@@ -134,10 +130,7 @@ if (readInstallProgress(installed.output) !== 'installed') {
 }
 
 // 6. Launch
-const launchRequest = JSON.stringify({ id: APP_ID });
-const launched = await runOnTv(
-  "luna-send -n 1 -f luna://com.webos.service.applicationManager/launch '" + launchRequest + "'",
-);
+const launched = await runOnTv(launchCommand(APP_ID));
 if (!launched.output.replace(/\s+/g, '').includes('"returnValue":true')) {
   console.error(launched.output.trim());
   fail('Installed, but the TV would not launch the app.');
