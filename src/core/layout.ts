@@ -132,3 +132,73 @@ function overlaps(a: CardPlace, b: CardPlace): boolean {
   const apartUpAndDown = a.row + sizeA.rows <= b.row || b.row + sizeB.rows <= a.row;
   return !apartSideways && !apartUpAndDown;
 }
+
+/** A place on the grid: a page, and the top-left cell a card would cover. */
+export interface GridPlace {
+  page: number;
+  column: number;
+  row: number;
+}
+
+/**
+ * Moves a card, for the "Reorganise layout" mode. Gives the new layout, or null when the
+ * move is refused and nothing changes.
+ *
+ *   - The card moves when its new cells are on the grid and free. Its own old cells count
+ *     as free, so a wide card can shift sideways by one.
+ *   - Dropped exactly on another card of the same size, the two swap places.
+ *   - Anything else (part of another card in the way, or off the grid) is refused.
+ *
+ * The page may be one past the last, which starts a new page.
+ */
+export function moveCard(layout: Layout, deviceId: string, to: GridPlace): Layout | null {
+  const card = layout.cards.filter((item) => item.deviceId === deviceId)[0];
+  if (card === undefined || to.page < 0) return null;
+
+  const moved: CardPlace = {
+    deviceId,
+    page: to.page,
+    column: to.column,
+    row: to.row,
+    size: card.size,
+  };
+  const others: Layout = removeCard(layout, deviceId);
+  if (fits(others, moved)) {
+    return { cards: layout.cards.map((item) => (item.deviceId === deviceId ? moved : item)) };
+  }
+
+  // A swap: exactly one card of the same size sits exactly at the place.
+  const atPlace = others.cards.filter(
+    (item) =>
+      item.page === to.page &&
+      item.column === to.column &&
+      item.row === to.row &&
+      item.size === card.size,
+  )[0];
+  if (atPlace === undefined) return null;
+
+  const swappedOut: CardPlace = { ...atPlace, page: card.page, column: card.column, row: card.row };
+  const swapped = layout.cards.map((item) => {
+    if (item.deviceId === deviceId) return moved;
+    if (item.deviceId === atPlace.deviceId) return swappedOut;
+    return item;
+  });
+  return { cards: swapped };
+}
+
+/**
+ * Drops pages that have no cards and numbers the later pages down to close the gap. Every
+ * card keeps its place on its own page. Gives back the same layout when no page is empty.
+ */
+export function removeEmptyPages(layout: Layout): Layout {
+  const used: number[] = [];
+  for (const card of layout.cards) {
+    if (used.indexOf(card.page) === -1) used.push(card.page);
+  }
+  used.sort((a, b) => a - b);
+
+  const isCompact = used.every((page, index) => page === index);
+  if (isCompact) return layout;
+
+  return { cards: layout.cards.map((card) => ({ ...card, page: used.indexOf(card.page) })) };
+}

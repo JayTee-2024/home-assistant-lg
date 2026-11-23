@@ -9,8 +9,10 @@ import {
   cellsOf,
   EMPTY_LAYOUT,
   hasCard,
+  moveCard,
   pageCount,
   removeCard,
+  removeEmptyPages,
   withCurrentSizes,
   type CardPlace,
   type Layout,
@@ -165,5 +167,103 @@ describe('withCurrentSizes', () => {
     const sizes: { [deviceId: string]: CardSize } = { a: 'small', b: 'wide' };
 
     expect(withCurrentSizes(layout, (deviceId) => sizes[deviceId] ?? null)).toBe(layout);
+  });
+});
+
+describe('moveCard', () => {
+  const place = (layout: Layout | null, deviceId: string) =>
+    layout === null ? 'refused' : placeOf(layout, deviceId);
+
+  it('moves a card to free cells', () => {
+    const layout = layoutOf('a', 'b');
+
+    expect(place(moveCard(layout, 'a', { page: 0, column: 3, row: 2 }), 'a')).toBe(
+      'page 0, column 3, row 2',
+    );
+  });
+
+  it("counts the card's own cells as free, so a wide card can shift by one", () => {
+    const layout = layoutOf('heating:wide');
+
+    expect(place(moveCard(layout, 'heating', { page: 0, column: 1, row: 0 }), 'heating')).toBe(
+      'page 0, column 1, row 0',
+    );
+  });
+
+  it('moves a card to another page, including one that does not exist yet', () => {
+    const layout = layoutOf('a', 'b');
+    const moved = moveCard(layout, 'b', { page: 1, column: 0, row: 0 });
+
+    expect(place(moved, 'b')).toBe('page 1, column 0, row 0');
+    expect(moved === null ? 0 : pageCount(moved)).toBe(2);
+  });
+
+  it('swaps two cards of the same size when one is dropped on the other', () => {
+    const swapped = moveCard(layoutOf('a', 'b', 'c'), 'a', { page: 0, column: 2, row: 0 });
+
+    expect(place(swapped, 'a')).toBe('page 0, column 2, row 0');
+    expect(place(swapped, 'c')).toBe('page 0, column 0, row 0');
+    expect(place(swapped, 'b')).toBe('page 0, column 1, row 0');
+  });
+
+  it('swaps two wide cards placed exactly on each other', () => {
+    const layout = layoutOf('h1:wide', 'h2:wide');
+
+    const swapped = moveCard(layout, 'h1', { page: 0, column: 2, row: 0 });
+
+    expect(place(swapped, 'h1')).toBe('page 0, column 2, row 0');
+    expect(place(swapped, 'h2')).toBe('page 0, column 0, row 0');
+  });
+
+  it('refuses a place that overlaps a card of another size', () => {
+    const layout = layoutOf('heating:wide', 'a');
+
+    expect(moveCard(layout, 'a', { page: 0, column: 1, row: 0 })).toBeNull();
+    expect(moveCard(layout, 'heating', { page: 0, column: 1, row: 0 })).toBeNull();
+  });
+
+  it('refuses a place that runs off the grid', () => {
+    const layout = layoutOf('doorbell:large');
+
+    expect(moveCard(layout, 'doorbell', { page: 0, column: 5, row: 0 })).toBeNull();
+    expect(moveCard(layout, 'doorbell', { page: 0, column: 0, row: 2 })).toBeNull();
+    expect(moveCard(layout, 'doorbell', { page: -1, column: 0, row: 0 })).toBeNull();
+  });
+
+  it('refuses to move a card that is not there', () => {
+    expect(moveCard(layoutOf('a'), 'zzz', { page: 0, column: 3, row: 0 })).toBeNull();
+  });
+
+  it('does not change the layout it was given', () => {
+    const layout = layoutOf('a', 'b');
+    const copy = JSON.parse(JSON.stringify(layout)) as Layout;
+
+    moveCard(layout, 'a', { page: 0, column: 1, row: 0 });
+
+    expect(layout).toEqual(copy);
+  });
+});
+
+describe('removeEmptyPages', () => {
+  it('drops empty pages and numbers the later ones down, keeping every place on its page', () => {
+    const layout: Layout = {
+      cards: [
+        { deviceId: 'a', page: 0, column: 3, row: 1, size: 'small' },
+        { deviceId: 'b', page: 2, column: 4, row: 2, size: 'small' },
+        { deviceId: 'c', page: 4, column: 0, row: 0, size: 'wide' },
+      ],
+    };
+
+    expect(removeEmptyPages(layout).cards).toEqual([
+      { deviceId: 'a', page: 0, column: 3, row: 1, size: 'small' },
+      { deviceId: 'b', page: 1, column: 4, row: 2, size: 'small' },
+      { deviceId: 'c', page: 2, column: 0, row: 0, size: 'wide' },
+    ]);
+  });
+
+  it('gives back the same layout when no page is empty', () => {
+    const layout = layoutOf('a', 'b');
+
+    expect(removeEmptyPages(layout)).toBe(layout);
   });
 });
