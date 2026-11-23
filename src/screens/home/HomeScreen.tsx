@@ -90,7 +90,7 @@ export function HomeScreen(props: HomeScreenProps) {
 
       {props.isReconnecting && (
         <div class="banner" role="status">
-          Lost the connection to Home Assistant. Trying to reconnect…
+          Lost the connection to Home Assistant. Showing the last known states. Trying to reconnect…
         </div>
       )}
 
@@ -104,7 +104,8 @@ export function HomeScreen(props: HomeScreenProps) {
         </main>
       ) : (
         <main class="home">
-          <div class="grid" ref={grid}>
+          {/* While the connection is down, every card shows its last known state, dimmed. */}
+          <div class={'grid' + (props.isReconnecting ? ' grid-stale' : '')} ref={grid}>
             {cards.map((place) => (
               <DeviceCard
                 key={place.deviceId}

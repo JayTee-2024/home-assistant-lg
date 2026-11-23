@@ -204,3 +204,16 @@
 .card-camera .face {
   margin: 0 0 1rem;
 }
+
+/* ---- Things that went wrong ---- */
+
+/* Home Assistant cannot be reached: everything shows its last known state, dimmed. */
+.grid-stale .card {
+  opacity: 0.5;
+}
+
+/* The device's main part is unavailable in Home Assistant. */
+.card-unavailable {
+  background: #15191f;
+  opacity: 0.6;
+}

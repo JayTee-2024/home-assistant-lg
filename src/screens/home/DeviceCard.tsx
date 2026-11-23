@@ -9,7 +9,7 @@
  */
 
 import type { Device } from '../../core/devices';
-import type { HomeSnapshot } from '../../core/home-assistant';
+import { isAvailable, type HomeSnapshot } from '../../core/home-assistant';
 import { cellsOf, GRID_COLUMNS, GRID_ROWS, type CardPlace } from '../../core/layout';
 import { deviceTypeFor } from '../../devices/registry';
 import { Icon, MORE_ICON } from '../shared/Icon';
@@ -50,6 +50,8 @@ export function DeviceCard(props: DeviceCardProps) {
       <div
         class="card card-missing"
         style={style}
+        role="button"
+        onClick={device === null ? props.onPress : undefined}
         data-focusable
         data-card={place.deviceId}
         data-focus-first={props.isFirst ? '' : undefined}
@@ -60,6 +62,7 @@ export function DeviceCard(props: DeviceCardProps) {
           <div class="card-room">
             {device === null ? 'No longer in Home Assistant' : 'Nothing here can be shown yet'}
           </div>
+          {device === null && <div class="card-extra">Press OK to remove</div>}
         </div>
       </div>
     );
@@ -71,7 +74,12 @@ export function DeviceCard(props: DeviceCardProps) {
 
   return (
     <div
-      class={'card card-' + mainType.id + (isActive ? ' card-active' : '')}
+      class={
+        'card card-' +
+        mainType.id +
+        (isActive ? ' card-active' : '') +
+        (isAvailable(mainEntity) ? '' : ' card-unavailable')
+      }
       style={style}
       role="button"
       aria-label={device.name}

@@ -35,6 +35,7 @@ import {
   type SavedSignIn,
   type SavedState,
 } from '../core/saved-state';
+import { leaveToTv } from '../platform/back';
 import { closeApp } from '../platform/close-app';
 import { openHomeConnection } from '../platform/home-assistant-connection';
 import { fetchSend } from '../platform/http';
@@ -249,7 +250,14 @@ export function App() {
   /** A short press of OK on a card, or a click on it: do the main part's everyday action. */
   function pressCard(deviceId: string) {
     const device = findDevice(current.current.devices, deviceId);
-    const main = device === null ? null : device.mainPart;
+
+    // A card for a device Home Assistant no longer has: OK removes it, as the card says.
+    if (device === null) {
+      updateSaved((state) => ({ ...state, layout: removeCard(state.layout, deviceId) }));
+      return;
+    }
+
+    const main = device.mainPart;
     const type = main === null ? null : deviceTypeFor(main.typeId);
     const entity = main === null ? undefined : current.current.shownHome.states[main.entityId];
     if (type === null || entity === undefined) return;
@@ -405,7 +413,11 @@ export function App() {
       }
 
       if (key === 'back') {
+        // Back closes what is open; on a first screen it hands over to the TV (see back.ts).
+        // In a text field it is left alone, so the TV keyboard can close itself.
         if (now.overlay.kind !== 'none') closeOverlay();
+        else if (isTypingInField()) return;
+        else leaveToTv();
         event.preventDefault();
         return;
       }
