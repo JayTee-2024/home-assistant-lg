@@ -374,8 +374,9 @@ webOS, so the app runs in a desktop browser by swapping that one folder's implem
 
 The foundation (stage 2) is delivered in two plans, so that a working app reaches the TV sooner:
 `docs/superpowers/plans/2026-11-23-sign-in-and-control-devices.md` (sign-in, connection, picker, grid with
-pages, storage, and light, switch, button, sensor and binary sensor), then a second plan for reorganise mode,
-climate, camera, the remaining error states and the two guides.
+pages, storage, and light, switch, button, sensor and binary sensor), then
+`docs/superpowers/plans/2026-11-23-heating-camera-and-layout.md` (reorganise mode, climate, camera, the
+remaining error states, the Back key, and the guide to adding a device type).
 
 ## Decisions made while building **(my calls)**
 
@@ -394,8 +395,22 @@ Added on 2026-11-23, during the first foundation plan. Each refines a rule above
 - **"Not supported yet" in the picker.** The row can be chosen, and choosing it shows a short message.
 - **When Home Assistant does not answer at start-up,** the app says so, retries every few seconds, and
   offers to sign in again or change the address.
-- **Back on the home screen** does nothing yet. LG's convention for it is settled with the other finishing
-  work in the next plan.
+- **Back on the home screen** (and on the sign-in and connecting screens) hands over to the TV: the Home
+  launcher on webOS 5 and lower, a "leave the app?" question on webOS 6 and higher, as LG's back-button
+  guide asks. Settled in plan 3.
+
+Added during plan 3 (`docs/superpowers/plans/2026-11-23-heating-camera-and-layout.md`):
+
+- **Devices that can unlock or open something** (a lock, an alarm panel, or a door, garage or gate cover)
+  are wholly "Not supported yet", including their other parts, so nothing on them can be operated.
+- **Camera pictures** refresh every 10 seconds on a card and every 2 seconds in the panel. A failed refresh
+  keeps the last picture; "No picture" shows only when none has ever loaded.
+- **Reorganise mode.** Back with nothing picked up saves and leaves, like Done, since every move was already
+  confirmed with OK. A card carried past the last page starts a new page; empty pages are removed on leaving.
+- **Reconnecting.** Cards are dimmed and show their last known state; panels still open, and their controls
+  say "Not connected to Home Assistant."
+- **Signing out** waits up to 5 seconds for Home Assistant to cancel the sign-in, then forgets it anyway.
+- **A card for a removed device** says "Press OK to remove", and OK removes it.
 
 ## Left to the builder
 

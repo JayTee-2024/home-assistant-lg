@@ -7,9 +7,11 @@ The full design is in
 [docs/superpowers/specs/2026-11-23-home-assist-lg-design.md](docs/superpowers/specs/2026-11-23-home-assist-lg-design.md).
 Read "Readable and extendable code" there before changing anything.
 
-**Status:** in progress. You can sign in to Home Assistant, choose devices, see them as cards on a paged
-grid, and control lights, switches, plugs, buttons, scenes and scripts with the remote; sensors show their
-readings. Heating, cameras, the "Reorganise layout" mode and the remaining device types come next.
+**Status:** in progress. You can sign in to Home Assistant, choose devices, arrange them as cards on a paged
+grid, and control lights, switches, plugs, heating, buttons, scenes and scripts with the remote. Cameras
+show a still picture, and sensors show their readings. Media players, covers, fans and vacuums come next.
+
+To add a type of device, follow [docs/adding-a-device-type.md](docs/adding-a-device-type.md).
 
 ## Folder map
 
@@ -21,7 +23,7 @@ src/app/         where the app starts, and the one place the other folders are w
 src/core/        logic with no screen code and no TV code; fully tested
 src/devices/     one folder per device type (light, switch, sensor ...), each with the same files
 src/platform/    everything specific to the browser or the TV: polyfills, remote keys, network, storage
-src/screens/     what is shown: sign-in, the home screen, a device's panel, Settings
+src/screens/     what is shown: sign-in, the home screen, a device's panel, Settings, reorganise mode
 src/test-support/  helpers for the tests; never part of the app
 webos/           what the TV needs to know about the app: its ID, name and icons
 ```
@@ -82,7 +84,8 @@ No TV and no Home Assistant are needed to work on the app.
    fails, type `localhost:8124` as the address, then sign in as `tv` with password `tv`.
 
 On a keyboard, the arrow keys and Enter stand in for the remote, and Escape is Back. Hold Enter on a card
-to open its panel.
+to open its panel. Escape on the home screen does nothing in a browser; on a TV it goes to the TV's Home
+screen (webOS 5 and older) or asks whether to leave (webOS 6 and newer).
 
 A real Home Assistant refuses the sign-in from a desktop browser (it only accepts it from the TV app, or
 from its own pages). To use a real one from the desktop, type its address, choose "Advanced: use an
