@@ -141,6 +141,21 @@ describe('buildDevices: the device', () => {
     ]);
   });
 
+  it('puts a battery level last even when its type would otherwise come first', () => {
+    const lateType: PartType = {
+      id: 'binary_sensor',
+      domains: ['binary_sensor'],
+      mainOrder: 110,
+      cardSize: 'small',
+      supports: () => true,
+    };
+
+    const doorbell = findDevice(buildDevices(sampleHome(), [sensor, lateType]), 'device:dev_ring');
+
+    expect(doorbell?.parts.map((part) => part.name)).toEqual(['Ding', 'Motion', 'Battery']);
+    expect(doorbell?.mainPart?.name).toBe('Ding');
+  });
+
   it('still returns a device with nothing supported, with no parts', () => {
     const bridge = sampleDevice('device:dev_bridge');
 

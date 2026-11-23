@@ -56,6 +56,21 @@ describe('the sample home, sorted by the real types', () => {
     expect(findDevice(devices, 'entity:input_boolean.guest_mode')?.mainPart?.typeId).toBe('switch');
   });
 
+  it('gives the doorbell its two binary sensors and its battery as parts', () => {
+    const parts = findDevice(devices, 'device:dev_ring')?.parts.map((part) => part.entityId);
+
+    expect(parts).toEqual([
+      'binary_sensor.front_door_ding',
+      'binary_sensor.front_door_motion',
+      'sensor.front_door_battery',
+    ]);
+  });
+
+  it('lists the scene and the script as buttons of their own', () => {
+    expect(findDevice(devices, 'entity:scene.movie_night')?.mainPart?.typeId).toBe('button');
+    expect(findDevice(devices, 'entity:script.goodnight')?.mainPart?.typeId).toBe('button');
+  });
+
   it('has nothing supported for the lock or the garage door', () => {
     expect(findDevice(devices, 'device:dev_lock')?.parts).toEqual([]);
     expect(findDevice(devices, 'device:dev_garage')?.parts).toEqual([]);

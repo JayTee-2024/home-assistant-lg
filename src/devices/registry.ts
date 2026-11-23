@@ -9,11 +9,20 @@
  * device's card: a doorbell's camera before its battery sensor.
  */
 
+import { binarySensorType } from './binary-sensor';
+import { buttonType } from './button';
 import type { DeviceType } from './device-type';
 import { lightType } from './light';
+import { sensorType } from './sensor';
 import { switchType } from './switch';
 
-export const DEVICE_TYPES: DeviceType[] = [lightType, switchType];
+export const DEVICE_TYPES: DeviceType[] = [
+  lightType,
+  switchType,
+  buttonType,
+  sensorType,
+  binarySensorType,
+];
 
 /** The type with the given id, or null. Saved data and parts refer to types by id. */
 export function deviceTypeFor(typeId: string): DeviceType | null {

@@ -222,12 +222,12 @@ function makeDevice(
 }
 
 /**
- * Card order: the most significant type first (lowest mainOrder); within a type, a battery
- * level after everything else, so a thermometer's card leads with the temperature; then by name.
+ * Card order: a battery level always comes last, so it never leads a card that has
+ * anything else to show; then the most significant type first (lowest mainOrder); then by name.
  */
 function comparePartOrder(a: CollectedPart, b: CollectedPart): number {
-  if (a.type.mainOrder !== b.type.mainOrder) return a.type.mainOrder - b.type.mainOrder;
   if (a.isBatteryLevel !== b.isBatteryLevel) return a.isBatteryLevel ? 1 : -1;
+  if (a.type.mainOrder !== b.type.mainOrder) return a.type.mainOrder - b.type.mainOrder;
   return a.part.name.localeCompare(b.part.name);
 }
 

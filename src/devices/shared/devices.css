@@ -21,6 +21,13 @@
   line-height: 1.15;
 }
 
+.face-unit {
+  margin-left: 0.4rem;
+  font-size: 1.5rem;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
 .face-detail {
   display: flex;
   align-items: center;
