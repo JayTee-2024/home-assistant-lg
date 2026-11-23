@@ -8,8 +8,8 @@ TV runs, and which codes the remote's keys send.
 - **TV:** LG OLED65C9PLA (C9), webOS 4.5, firmware 05.50.00, rooted with Homebrew Channel
 - **Installed with:** `npm run deploy`
 - **Home Assistant:** version 2026.11.2 at `192.168.1.100:8123`
-- **Read from:** Simon's photo of the TV screen after a test run. Lines marked "not yet recorded" are still
-  to be filled in.
+- **Read from:** Simon's photo of the TV screen after a test run, and his report of the keys, the keyboard
+  and the close button.
 
 ## Sign-in route: direct
 
@@ -73,7 +73,7 @@ works well. The real sign-in screen can rely on it.
 - **The TV's own Node is version 0.12.2**, not version 8. It does not matter now that no helper service is
   built. If one is ever needed, it has to be written in the JavaScript of 2011 (ES5).
 
-## Still to check
+## Closing the app
 
-- Whether "Close app" leaves the app completely. After Simon's report the TV still listed the app as
-  running and in the foreground, so it is not confirmed either way.
+"Close app" left the app completely: Simon pressed it, the app went away, and it had to be started again
+from scratch. The button calls `window.close()`, so the real app's close button can do the same.
