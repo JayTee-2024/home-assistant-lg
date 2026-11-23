@@ -100,6 +100,19 @@ describe('the sample home, sorted by the real types', () => {
     expect(sonos?.cardSize).toBe('wide');
   });
 
+  it('leads the blind, the fan and the robot with their own types', () => {
+    expect(findDevice(devices, 'device:dev_blind')?.mainPart?.typeId).toBe('cover');
+    expect(findDevice(devices, 'device:dev_fan')?.mainPart?.typeId).toBe('fan');
+    expect(findDevice(devices, 'device:dev_vacuum')?.mainPart?.typeId).toBe('vacuum');
+  });
+
+  it('gives the robot its battery as a second part', () => {
+    expect(findDevice(devices, 'device:dev_vacuum')?.parts.map((part) => part.entityId)).toEqual([
+      'vacuum.robot',
+      'sensor.robot_battery',
+    ]);
+  });
+
   it('has nothing supported for the lock or the garage door', () => {
     expect(findDevice(devices, 'device:dev_lock')?.parts).toEqual([]);
     expect(findDevice(devices, 'device:dev_garage')?.parts).toEqual([]);

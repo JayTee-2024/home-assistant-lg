@@ -27,6 +27,8 @@ export interface PanelButtonProps {
   /** Marks the choice that is in force now, such as the current effect. */
   isSelected?: boolean;
   isDisabled?: boolean;
+  /** Marks the button that takes the focus when the panel opens, when it is not the first one. */
+  isFirst?: boolean;
   /** For a colour swatch: the label is still read out, but the button shows only the colour. */
   swatch?: string;
 }
@@ -45,6 +47,7 @@ export function PanelButton(props: PanelButtonProps) {
       style={style}
       disabled={props.isDisabled}
       aria-label={props.label}
+      data-focus-first={props.isFirst ? '' : undefined}
       title={props.swatch === undefined ? undefined : props.label}
       onClick={props.onPress}
     >

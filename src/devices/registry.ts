@@ -13,17 +13,23 @@ import { binarySensorType } from './binary-sensor';
 import { buttonType } from './button';
 import { cameraType } from './camera';
 import { climateType } from './climate';
+import { coverType } from './cover';
 import type { DeviceType } from './device-type';
+import { fanType } from './fan';
 import { lightType } from './light';
 import { mediaPlayerType } from './media-player';
 import { sensorType } from './sensor';
 import { switchType } from './switch';
+import { vacuumType } from './vacuum';
 
 export const DEVICE_TYPES: DeviceType[] = [
   cameraType,
   climateType,
   mediaPlayerType,
+  vacuumType,
   lightType,
+  coverType,
+  fanType,
   switchType,
   buttonType,
   sensorType,

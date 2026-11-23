@@ -77,6 +77,7 @@ export function MediaPlayerPanel({ entity, run }: PanelProps) {
           {view.canPlayPause && (
             <PanelButton
               label={view.isPlaying ? 'Pause' : 'Play'}
+              isFirst
               isDisabled={off}
               onPress={() => run(playPause(entity))}
             />
