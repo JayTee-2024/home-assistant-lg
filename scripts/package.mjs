@@ -26,8 +26,13 @@ for (const file of readdirSync(PACKAGE_FOLDER)) {
 
 // ares-package is LG's packaging tool. --no-minify because the bundle is already minified
 // for Chromium 53 and must not be reprocessed by a tool that does not know that target.
-execFileSync('npx', ['ares-package', '--no-minify', OUTPUT_FOLDER, '--outdir', PACKAGE_FOLDER], {
-  stdio: 'inherit',
-  // On Windows npx is a .cmd file, which can only be started through a shell.
-  shell: process.platform === 'win32',
-});
+// Its script is run with this same Node directly, which works the same on every system
+// (going through npx would need a shell on Windows).
+const ARES_PACKAGE = 'node_modules/@webos-tools/cli/bin/ares-package.js';
+execFileSync(
+  process.execPath,
+  [ARES_PACKAGE, '--no-minify', OUTPUT_FOLDER, '--outdir', PACKAGE_FOLDER],
+  {
+    stdio: 'inherit',
+  },
+);

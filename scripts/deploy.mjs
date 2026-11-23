@@ -9,6 +9,7 @@ import { createReadStream, existsSync, readdirSync } from 'node:fs';
 import { APP_ID, readDeployConfig } from './lib/deploy-config.mjs';
 import { readInstallAnswer, readInstallPid, readInstallProgress } from './lib/install-output.mjs';
 import { runCommand } from './lib/run-command.mjs';
+import { describeSshFailure } from './lib/ssh-failure.mjs';
 import { installCommand, launchCommand, stopCommand } from './lib/tv-commands.mjs';
 
 const PACKAGE_FOLDER = 'dist';
@@ -78,7 +79,7 @@ console.log('Copying ' + packagePath + ' to ' + config.host + ' ...');
 const copied = await runOnTv('cat > ' + REMOTE_PACKAGE, { input: createReadStream(packagePath) });
 if (copied.code !== 0) {
   if (copied.output.trim() !== '') console.error(copied.output.trim());
-  fail('Could not reach the TV at ' + config.host + '. Is it switched on?');
+  fail(describeSshFailure(copied.output, config.host, config.keyPath));
 }
 
 // 5. Install. The service keeps printing progress until it is stopped, so watch the
