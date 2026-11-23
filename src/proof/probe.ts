@@ -84,6 +84,30 @@ export function buildProbes(baseUrl: string): ProbePlan {
   };
 }
 
+/** Reads a JSON object from text, or returns null when the text is anything else. */
+function parseJsonObject(text: string): { [key: string]: unknown } | null {
+  try {
+    const value: unknown = JSON.parse(text);
+    return typeof value === 'object' && value !== null
+      ? (value as { [key: string]: unknown })
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+/** True for Home Assistant's answer to /auth/providers: an object with a list of providers. */
+export function isProvidersAnswer(body: string): boolean {
+  const answer = parseJsonObject(body);
+  return answer !== null && Array.isArray(answer.providers);
+}
+
+/** True for Home Assistant's answer to a new sign-in: a form asking for username and password. */
+export function isSignInFormAnswer(body: string): boolean {
+  const answer = parseJsonObject(body);
+  return answer !== null && answer.type === 'form';
+}
+
 function errorText(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }

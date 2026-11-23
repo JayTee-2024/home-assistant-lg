@@ -3,6 +3,8 @@ import {
   buildProbes,
   CLIENT_ID,
   decideSignInRoute,
+  isProvidersAnswer,
+  isSignInFormAnswer,
   PROBE_TIMEOUT_MS,
   runHttpProbe,
   runWebSocketProbe,
@@ -231,6 +233,31 @@ describe('decideSignInRoute', () => {
       'timeout',
     ] as const) {
       expect(decideSignInRoute(result('reached'), result(outcome))).toBe('helper-service');
+    }
+  });
+});
+
+describe('recognising Home Assistant answers', () => {
+  it('accepts the sign-in options answer', () => {
+    const body =
+      '{"providers":[{"name":"Home Assistant Local","id":null,"type":"homeassistant"}],"preselect_remember_me":true}';
+    expect(isProvidersAnswer(body)).toBe(true);
+  });
+
+  it('rejects anything without a providers list', () => {
+    for (const body of ['<html>router</html>', '{}', '{"providers":"none"}', 'null', '']) {
+      expect(isProvidersAnswer(body)).toBe(false);
+    }
+  });
+
+  it('accepts the first step of a sign-in', () => {
+    const body = '{"type":"form","flow_id":"3323f1c8","step_id":"init","errors":{}}';
+    expect(isSignInFormAnswer(body)).toBe(true);
+  });
+
+  it('rejects anything that is not a sign-in form', () => {
+    for (const body of ['<html>router</html>', '{}', '{"type":"abort"}', 'null', '']) {
+      expect(isSignInFormAnswer(body)).toBe(false);
     }
   });
 });

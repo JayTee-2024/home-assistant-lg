@@ -1,0 +1,126 @@
+/*
+ * Base styles for the whole app.
+ *
+ * Scaling: every size is in rem, and 1rem is 1/120 of the screen width, so 1rem is 16px on a
+ * 1920-wide screen and the layout scales to any TV without size-specific rules.
+ *
+ * Layout uses flexbox only. Chromium 53 (webOS TV 4.x) has no CSS grid.
+ */
+
+html {
+  font-size: calc(100vw / 120);
+}
+
+body {
+  margin: 0;
+  background: #0e1116;
+  color: #f2f4f7;
+  font-family: 'LG Smart UI', 'Segoe UI', Arial, sans-serif;
+  font-size: 1.5rem;
+  line-height: 1.4;
+}
+
+/* The white outline marks what the remote is focused on. Used by every screen. */
+:focus {
+  outline: 0.25rem solid #f2f4f7;
+  outline-offset: 0.25rem;
+}
+
+/* ---- TV proof screen (throwaway, removed with src/proof) ---- */
+
+.proof {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 3rem 4rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.proof h1 {
+  margin: 0 0 1.5rem;
+  font-size: 2.75rem;
+}
+
+.proof-row {
+  display: flex;
+  margin-bottom: 0.5rem;
+}
+
+.proof-label {
+  flex: none;
+  width: 18rem;
+  color: #a7b0bd;
+}
+
+.proof-value {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.proof-controls {
+  display: flex;
+  align-items: flex-end;
+  margin: 1.5rem 0;
+}
+
+.proof-controls > * {
+  margin-right: 1.5rem;
+}
+
+.proof-field {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.proof-field label {
+  color: #a7b0bd;
+  margin-bottom: 0.5rem;
+}
+
+.proof input {
+  height: 4.5rem;
+  box-sizing: border-box;
+  padding: 0 1.25rem;
+  border: 0.0625rem solid #4a5565;
+  border-radius: 1rem;
+  background: #1a1f27;
+  color: #f2f4f7;
+  font: inherit;
+}
+
+.proof button {
+  height: 4.5rem;
+  padding: 0 2.5rem;
+  border: 0;
+  border-radius: 1rem;
+  background: #ffb454;
+  color: #1a1206;
+  font: inherit;
+  font-weight: 600;
+}
+
+.proof button.secondary {
+  background: #232a34;
+  color: #f2f4f7;
+}
+
+.proof-message {
+  color: #ffb454;
+  min-height: 2.1rem;
+}
+
+.proof-verdict {
+  margin-top: 1rem;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.outcome-reached {
+  color: #7fd6a4;
+}
+
+.outcome-other {
+  color: #ffb454;
+}
