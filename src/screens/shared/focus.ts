@@ -6,10 +6,11 @@
  * direction. Which one is "nearest" is decided by src/core/spatial-focus.ts; this file
  * reads the positions off the page and moves the browser's real focus.
  *
- * Three markers on elements steer it:
+ * Four markers on elements steer it:
  *   data-focus-scope   the part of the page the arrows are confined to. The last one in
  *                      the page wins, so an open panel or Settings takes over the arrows.
  *   data-pointer-only  can be clicked with the pointer but is skipped by the arrows.
+ *   data-focus-row     a row of controls. Left and Right do not leave it.
  *   data-scrolls       a list that scrolls. It is scrolled to keep the focused row in view.
  */
 
@@ -40,8 +41,14 @@ export function moveFocus(scope: HTMLElement, direction: Direction): boolean {
     return candidates.length > 0;
   }
 
-  const index = nextInDirection(boxOf(current), candidates.map(boxOf), direction);
-  const next = index === null ? undefined : candidates[index];
+  // Inside a row of controls, Left and Right stay in that row. Without this, Right at the
+  // end of a row would jump to whatever lies further right in some other row.
+  const row =
+    direction === 'left' || direction === 'right' ? current.closest('[data-focus-row]') : null;
+  const pool = row === null ? candidates : candidates.filter((element) => row.contains(element));
+
+  const index = nextInDirection(boxOf(current), pool.map(boxOf), direction);
+  const next = index === null ? undefined : pool[index];
   if (next === undefined) return false;
 
   focusElement(next);

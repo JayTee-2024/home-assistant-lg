@@ -10,6 +10,7 @@ import { SensorPanel } from './Panel';
 export const sensorType: DeviceType = {
   id: 'sensor',
   label: 'Sensor',
+  icon: 'M22 12h-4l-3 9L9 3l-3 9H2',
   domains: ['sensor'],
   mainOrder: 100,
   cardSize: 'small',

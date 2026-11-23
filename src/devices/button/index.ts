@@ -12,6 +12,7 @@ import { ButtonPanel } from './Panel';
 export const buttonType: DeviceType = {
   id: 'button',
   label: 'Button',
+  icon: 'M5 3l14 9-14 9V3z',
   domains: ['button', 'input_button', 'scene', 'script'],
   mainOrder: 90,
   cardSize: 'small',

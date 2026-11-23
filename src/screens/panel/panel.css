@@ -1,0 +1,55 @@
+/*
+ * A device's panel, and the dimmed layer behind it. Settings uses the same layer.
+ * The rows and buttons inside a panel are styled in src/devices/shared/devices.css.
+ */
+
+.overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 10, 14, 0.82);
+  z-index: 10;
+}
+
+.panel {
+  position: relative;
+  box-sizing: border-box;
+  width: 72rem;
+  max-height: 60rem;
+  padding: 2.5rem 3rem;
+  border-radius: 1.5rem;
+  background: #1a1f27;
+  overflow-y: auto;
+}
+
+.panel-heading {
+  /* Leaves room for the close button at the top right. */
+  margin: 0 5rem 1.5rem 0;
+}
+
+.panel-heading h1 {
+  font-size: 2.75rem;
+}
+
+.panel-room {
+  margin-top: 0.25rem;
+  color: #a7b0bd;
+}
+
+.panel-part-name {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1.75rem;
+  font-weight: 600;
+}
+
+.panel-close {
+  position: absolute;
+  top: 2rem;
+  right: 2.5rem;
+  margin: 0;
+}

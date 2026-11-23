@@ -40,6 +40,12 @@ export interface DeviceType extends PartType {
   label: string;
 
   /**
+   * The type's icon, as SVG path data drawn on a 24×24 grid with a 2-unit stroke
+   * (the style of https://feathericons.com). Shown on the card and in the picker.
+   */
+  icon: string;
+
+  /**
    * What a short press of OK does on the card: an action to run, 'open-panel' for types
    * with no single everyday action, or 'nothing' (a sensor, or an entity that is unavailable).
    */

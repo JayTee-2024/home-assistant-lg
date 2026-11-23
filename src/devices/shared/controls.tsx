@@ -13,7 +13,10 @@ export function PanelRow(props: { label: string; children: ComponentChildren }) 
   return (
     <div class="panel-row">
       <div class="panel-row-label">{props.label}</div>
-      <div class="panel-row-controls">{props.children}</div>
+      {/* data-focus-row: Left and Right stay within this row. See src/screens/shared/focus.ts. */}
+      <div class="panel-row-controls" data-focus-row>
+        {props.children}
+      </div>
     </div>
   );
 }

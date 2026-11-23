@@ -89,9 +89,12 @@
   font-weight: 600;
 }
 
+/* Sized so that twelve colours fit on one line of a panel row. */
 .control-swatch {
-  width: 4rem;
+  width: 3.4rem;
   min-width: 0;
+  height: 3.4rem;
+  margin-right: 0.55rem;
   padding: 0;
   border-radius: 50%;
 }

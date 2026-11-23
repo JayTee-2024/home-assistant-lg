@@ -10,6 +10,7 @@ import { BinarySensorPanel } from './Panel';
 export const binarySensorType: DeviceType = {
   id: 'binary_sensor',
   label: 'Sensor',
+  icon: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
   domains: ['binary_sensor'],
   mainOrder: 110,
   cardSize: 'small',
