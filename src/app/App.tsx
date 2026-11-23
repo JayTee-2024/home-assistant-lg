@@ -36,6 +36,7 @@ import {
   type SavedState,
 } from '../core/saved-state';
 import { leaveToTv } from '../platform/back';
+import { isKeyboardOpen } from '../platform/keyboard';
 import { closeApp } from '../platform/close-app';
 import { openHomeConnection } from '../platform/home-assistant-connection';
 import { fetchSend } from '../platform/http';
@@ -498,6 +499,8 @@ export function App() {
         refusedToken={refusedToken}
         onSignedIn={handleSignedIn}
         onClose={closeApp}
+        registerKeys={(handler) => (screenKeys.current = handler)}
+        isKeyboardOpen={isKeyboardOpen}
       />
     );
   }

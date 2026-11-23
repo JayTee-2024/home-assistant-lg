@@ -24,8 +24,10 @@ import {
   submitCredentials,
   type SignInStep,
 } from '../../core/sign-in';
+import type { RemoteKey } from '../../core/remote-key';
 import { focusElement, focusFirst, moveFocus, topScope } from '../shared/focus';
 import { TitleBar } from '../shared/TitleBar';
+import { backFrom, type Form } from './back';
 
 export interface SignInScreenProps {
   /** Sends requests. The app passes the real sender; it already has a time limit. */
@@ -41,9 +43,11 @@ export interface SignInScreenProps {
   refusedToken: string | null;
   onSignedIn(signIn: SavedSignIn): void;
   onClose(): void;
+  /** The app passes every remote key here first; the screen claims Back to step back a form. */
+  registerKeys(handler: ((key: RemoteKey) => boolean) | null): void;
+  /** True while the TV's on-screen keyboard is open, when Back must only close it. */
+  isKeyboardOpen(): boolean;
 }
-
-type Form = 'looking' | 'address' | 'credentials' | 'code' | 'token';
 
 export function SignInScreen(props: SignInScreenProps) {
   const [form, setForm] = useState<Form>(props.refusedToken === null ? 'looking' : 'token');
@@ -115,6 +119,22 @@ export function SignInScreen(props: SignInScreenProps) {
     setMessage(props.notice);
     ask(beginSignIn(props.send, candidate), candidate);
   }
+
+  // Back steps back one form (see back.ts). The handler is registered once, so it reads the
+  // form and address through refs that always hold the newest values.
+  const now = useRef({ form, address });
+  now.current = { form, address };
+  useEffect(() => {
+    props.registerKeys((key) => {
+      // With the TV keyboard open, Back only closes the keyboard.
+      if (key !== 'back' || props.isKeyboardOpen()) return false;
+      const target = backFrom(now.current.form);
+      if (target === 'address') goTo('address');
+      else if (target === 'restart') tryAddress(now.current.address);
+      return target !== null;
+    });
+    return () => props.registerKeys(null);
+  }, []);
 
   // On first showing, try the starting address straight away.
   useEffect(() => {
