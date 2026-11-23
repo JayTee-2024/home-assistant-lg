@@ -93,6 +93,13 @@ describe('the sample home, sorted by the real types', () => {
     expect(tado?.cardSize).toBe('wide');
   });
 
+  it('leads the Sonos with its media player, as a wide card', () => {
+    const sonos = findDevice(devices, 'device:dev_sonos');
+
+    expect(sonos?.mainPart?.typeId).toBe('media_player');
+    expect(sonos?.cardSize).toBe('wide');
+  });
+
   it('has nothing supported for the lock or the garage door', () => {
     expect(findDevice(devices, 'device:dev_lock')?.parts).toEqual([]);
     expect(findDevice(devices, 'device:dev_garage')?.parts).toEqual([]);

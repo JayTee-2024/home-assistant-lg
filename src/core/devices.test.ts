@@ -283,9 +283,17 @@ describe('groupByRoom', () => {
   it('orders rooms by name with "No room" last, and devices by name within a room', () => {
     const rooms = groupByRoom(buildDevices(sampleHome(), partTypes));
 
-    expect(rooms.map((room) => room.name)).toEqual(['Hallway', 'Kitchen', 'Living room', NO_ROOM]);
-    expect(rooms[2]?.devices.map((device) => device.name)).toEqual([
+    expect(rooms.map((room) => room.name)).toEqual([
+      'Bedroom',
+      'Hallway',
+      'Kitchen',
+      'Living room',
+      NO_ROOM,
+    ]);
+    expect(rooms[3]?.devices.map((device) => device.name)).toEqual([
       'Living room heating',
+      'Living room Sonos',
+      'Lounge blind',
       'Lounge lamp',
       'TV plug',
     ]);

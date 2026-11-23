@@ -297,6 +297,76 @@ export function createFakeHome(sampleHome, cameraPicture = readFileSync(CAMERA_P
       return null;
     }
 
+    // Media players: just enough to see the panel change.
+    if (key === 'media_player.media_play_pause') {
+      setState(entityId, state.state === 'playing' ? 'paused' : 'playing');
+      return null;
+    }
+    if (key === 'media_player.volume_set') {
+      setState(entityId, state.state, { volume_level: data.volume_level });
+      return null;
+    }
+    if (key === 'media_player.volume_mute') {
+      setState(entityId, state.state, { is_volume_muted: data.is_volume_muted });
+      return null;
+    }
+    if (key === 'media_player.select_source') {
+      setState(entityId, state.state, { source: data.source });
+      return null;
+    }
+    if (key === 'media_player.media_next_track' || key === 'media_player.media_previous_track') {
+      return null;
+    }
+
+    // Covers move at once; a real one takes its time.
+    if (key === 'cover.open_cover') {
+      setState(entityId, 'open', { current_position: 100 });
+      return null;
+    }
+    if (key === 'cover.close_cover') {
+      setState(entityId, 'closed', { current_position: 0 });
+      return null;
+    }
+    if (key === 'cover.stop_cover') return null;
+    if (key === 'cover.set_cover_position') {
+      setState(entityId, data.position > 0 ? 'open' : 'closed', {
+        current_position: data.position,
+      });
+      return null;
+    }
+
+    // Fans.
+    if (key === 'fan.toggle' || key === 'fan.turn_on' || key === 'fan.turn_off') {
+      const turnOn = service === 'turn_on' || (service === 'toggle' && state.state !== 'on');
+      setState(entityId, turnOn ? 'on' : 'off');
+      return null;
+    }
+    if (key === 'fan.set_percentage') {
+      setState(entityId, data.percentage > 0 ? 'on' : 'off', { percentage: data.percentage });
+      return null;
+    }
+    if (key === 'fan.oscillate') {
+      setState(entityId, state.state, { oscillating: data.oscillating });
+      return null;
+    }
+    if (key === 'fan.set_preset_mode') {
+      setState(entityId, 'on', { preset_mode: data.preset_mode });
+      return null;
+    }
+
+    // Vacuums.
+    const vacuumActivity = {
+      'vacuum.start': 'cleaning',
+      'vacuum.pause': 'paused',
+      'vacuum.stop': 'idle',
+      'vacuum.return_to_base': 'returning',
+    }[key];
+    if (vacuumActivity !== undefined) {
+      setState(entityId, vacuumActivity);
+      return null;
+    }
+    if (key === 'vacuum.locate') return null;
+
     if (key === 'button.press' || key === 'input_button.press' || key === 'scene.turn_on') {
       setState(entityId, new Date().toISOString());
       return null;

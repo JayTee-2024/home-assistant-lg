@@ -311,3 +311,55 @@ describe('heating', () => {
     expect(tado.state).toBe('off');
   });
 });
+
+describe('the other device types', () => {
+  /** Calls one service on one entity and returns that entity afterwards. */
+  function callAndRead(domain, service, entityId, data = {}) {
+    const home = createFakeHome(sampleHome);
+    const { socket, received } = openSignedInSocket(home);
+    socket.receive({
+      id: 1,
+      type: 'call_service',
+      domain,
+      service,
+      service_data: data,
+      target: { entity_id: entityId },
+    });
+    const answer = received.filter((message) => message.id === 1)[0];
+    return { answer, entity: home.states().filter((state) => state.entity_id === entityId)[0] };
+  }
+
+  it('plays, pauses and sets the volume of a speaker', () => {
+    expect(
+      callAndRead('media_player', 'media_play_pause', 'media_player.living_room_sonos').entity
+        .state,
+    ).toBe('paused');
+    expect(
+      callAndRead('media_player', 'volume_set', 'media_player.living_room_sonos', {
+        volume_level: 0.5,
+      }).entity.attributes.volume_level,
+    ).toBe(0.5);
+  });
+
+  it('opens, closes and positions a blind', () => {
+    expect(callAndRead('cover', 'close_cover', 'cover.lounge_blind').entity.state).toBe('closed');
+    const positioned = callAndRead('cover', 'set_cover_position', 'cover.lounge_blind', {
+      position: 75,
+    }).entity;
+    expect(positioned.attributes.current_position).toBe(75);
+    expect(positioned.state).toBe('open');
+  });
+
+  it('switches a fan and sets its speed', () => {
+    expect(callAndRead('fan', 'toggle', 'fan.bedroom_fan').entity.state).toBe('off');
+    expect(
+      callAndRead('fan', 'set_percentage', 'fan.bedroom_fan', { percentage: 75 }).entity.attributes
+        .percentage,
+    ).toBe(75);
+  });
+
+  it('starts a vacuum and sends it home', () => {
+    expect(callAndRead('vacuum', 'start', 'vacuum.robot').entity.state).toBe('cleaning');
+    expect(callAndRead('vacuum', 'return_to_base', 'vacuum.robot').entity.state).toBe('returning');
+  });
+});
