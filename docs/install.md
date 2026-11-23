@@ -9,7 +9,8 @@ LG's own app store does not carry it, so there are two ways to install it:
 - **Route A, Homebrew Channel.** For a TV that is already rooted and has Homebrew Channel. The easiest
   route: the app installs and updates from inside Homebrew Channel.
 - **Route B, developer mode.** For any LG webOS TV, using LG's free Developer Mode app and a program on
-  your computer. It needs renewing every few days (see the warning in Route B).
+  your computer. Developer mode has a time limit that you need to extend now and then (see the
+  warning in Route B).
 
 If you do not know which you have: if there is no app called Homebrew Channel on your TV, use Route B.
 
@@ -45,11 +46,12 @@ New versions appear in Homebrew Channel the same way: open the app's page there 
 
 You need a computer (Windows, Mac or Linux) on the same network as the TV for this route.
 
-> **Warning:** LG switches developer mode off after about 50 hours unless it is renewed, and **apps
-> installed this way are removed when it switches off**. Renew it by opening the Developer Mode app on
-> the TV and choosing **Extend** before the time runs out, or let webOS Dev Manager on your computer
-> renew it for you (see step 4). If the app does disappear, repeat steps 5 and 6. Your sign-in and your
-> card layout are kept on the TV only while the app is installed, so you would set those up again.
+> **Warning:** developer mode only lasts for a set time. The Developer Mode app on the TV shows how
+> much is left (webosbrew's guide gives the limit as 1000 hours, about six weeks). When it runs out,
+> **apps installed this way are removed**, and it cannot be extended any more. So open the Developer
+> Mode app every few weeks and choose **Extend** while there is still time left. If the app does
+> disappear, switch developer mode back on and repeat steps 5 and 6. Your sign-in and card layout go
+> with the app, so you would set those up again.
 
 1. **Make a free LG developer account** at [webostv.developer.lge.com](https://webostv.developer.lge.com)
    (choose **Sign in**, then create an account). webosbrew's
@@ -62,8 +64,7 @@ You need a computer (Windows, Mac or Linux) on the same network as the TV for th
 4. **Install webOS Dev Manager on your computer** from its
    [releases page](https://github.com/webosbrew/dev-manager-desktop/releases) (under **Assets**, choose
    the file for your computer, such as the `.msi` file for Windows). Open it, add your TV using the
-   address and passphrase from the Developer Mode app, and finish. Dev Manager can renew developer mode
-   automatically: look under the TV's **Info** for the renew option.
+   address and passphrase from the Developer Mode app, and finish.
 5. **Download the app:** open the
    [Home Assist LG releases page](https://github.com/JayTee-2024/home-assistant-lg/releases/latest)
    and download the file ending in `.ipk`.
@@ -80,7 +81,7 @@ To update, download the newer `.ipk` and install it the same way. Your sign-in a
 2. Enter the TV's **Username** and **Password** and choose **Sign in**. If your Home Assistant asks for
    a **Two-step code**, enter the code from your authenticator app. The TV keeps a sign-in pass from
    Home Assistant, never your password.
-3. The home screen starts empty. Open **Settings** (top right), go to **Devices**, and choose which
+3. The home screen starts empty. Open **Settings** (the gear button at the top right), go to **Devices**, and choose which
    devices to show. Each chosen device becomes a card.
 4. To move cards or add pages, open **Settings** and choose **Reorganise layout**.
 5. Select a card and press **OK** for its main action, such as switching a light on or off. Hold **OK**
@@ -94,11 +95,11 @@ To sign in as someone else or change the address, open **Settings**, then **Conn
 
 ## If something goes wrong
 
-- **"Cannot reach Home Assistant" or "Nothing answered at …":** check the address, including `http://`
-  and the port (usually `:8123`), and that the TV and Home Assistant are on the same network. Try the
+- **"Cannot reach Home Assistant" or "Nothing answered at …":** check the address and the port (usually
+  `:8123`), and that the TV and Home Assistant are on the same network. Try the
   same address in a browser on a phone on the same Wi-Fi.
 - **Your username or password is refused:** sign in with the same details at Home Assistant's own web
-  page to check them. Usernames are case-sensitive.
+  page to check them.
 - **Home Assistant refuses the usual sign-in** (some setups switch it off): choose **Advanced: use an
   access token**. In Home Assistant, open your user profile, the **Security** tab, and create a
   **Long-lived access token** at the bottom. Type it into the TV.

@@ -81,3 +81,13 @@ test('the repository index lists the one app in the shape Homebrew Channel reads
     },
   ]);
 });
+
+test('a local test can serve the icon itself', () => {
+  const manifest = makeManifest(
+    appInfo,
+    new Uint8Array([1]),
+    'http://pc:8080/a.ipk',
+    'http://pc:8080/icon.png',
+  );
+  expect(manifest.iconUri).toBe('http://pc:8080/icon.png');
+});

@@ -35,7 +35,10 @@ const COMMITTED_INDEX = 'webosbrew/apps.json';
 const baseUrlFlag = process.argv.indexOf('--base-url');
 const baseUrl = baseUrlFlag === -1 ? undefined : process.argv[baseUrlFlag + 1];
 if (baseUrlFlag !== -1 && !baseUrl)
-  stop('Give an address after --base-url, such as http://192.168.1.10:8080');
+  stop("Give your computer's address after --base-url, such as http://192.168.1.42:8080");
+
+// Start empty, so an older package can never be uploaded by mistake, even if a check below stops the run.
+rmSync(RELEASE_FOLDER, { recursive: true, force: true });
 
 if (!existsSync(OUTPUT_FOLDER + '/appinfo.json'))
   stop('Nothing to release. Run npm run package first.');
@@ -50,22 +53,25 @@ if (packages.length !== 1 || packages[0] !== expectedName) {
   );
 }
 
-// Start empty, so an older package can never be uploaded by mistake.
-rmSync(RELEASE_FOLDER, { recursive: true, force: true });
 mkdirSync(RELEASE_FOLDER, { recursive: true });
 copyFileSync(PACKAGE_FOLDER + '/' + expectedName, RELEASE_FOLDER + '/' + expectedName);
 
 // The manifest is computed from the copied file, the very bytes that will be uploaded.
 const ipkBytes = readFileSync(RELEASE_FOLDER + '/' + expectedName);
+// A local test serves the icon too, because the GitHub copy cannot be reached while the repository is private.
+const ICON_FILE = 'largeIcon.png';
+if (baseUrl) copyFileSync('webos/' + ICON_FILE, RELEASE_FOLDER + '/' + ICON_FILE);
 const manifest = makeManifest(
   appInfo,
   ipkBytes,
   downloadUrl(appInfo.version, expectedName, baseUrl),
+  baseUrl ? downloadUrl(appInfo.version, ICON_FILE, baseUrl) : undefined,
 );
 const manifestName = appInfo.id + '.manifest.json';
 writeJson(RELEASE_FOLDER + '/' + manifestName, manifest);
 
-// GitHub's "latest" link always leads to the newest release's file of that name.
+// Homebrew Channel uses the manifest copied into the index, so this link is only for a future
+// listing in webosbrew's own repository. GitHub's "latest" link leads to the newest release's file.
 const manifestUrl = baseUrl
   ? downloadUrl(appInfo.version, manifestName, baseUrl)
   : 'https://github.com/JayTee-2024/home-assistant-lg/releases/latest/download/' + manifestName;
@@ -76,10 +82,11 @@ writeJson(indexPath, makeRepositoryIndex(manifest, manifestUrl));
 console.log('Release ' + appInfo.version + ' ready in ' + RELEASE_FOLDER + ':');
 for (const file of readdirSync(RELEASE_FOLDER)) console.log('  ' + file);
 if (baseUrl) {
-  console.log('Serve it with: npx http-server ' + RELEASE_FOLDER + ' -p <port>');
+  console.log('Serve it with: npx http-server ' + RELEASE_FOLDER + ' -p <port> --cors');
   console.log(
     'Then add ' + baseUrl.replace(/\/$/, '') + '/apps.json as a repository in Homebrew Channel.',
   );
+  console.log('This is a test release only. Run npm run release again before publishing.');
 } else {
   console.log(
     'Next: create GitHub release v' +

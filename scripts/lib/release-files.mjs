@@ -28,15 +28,18 @@ export function downloadUrl(version, fileName, baseUrl) {
   return REPOSITORY_URL + '/releases/download/v' + version + '/' + fileName;
 }
 
-/** The manifest for one exact package. Make a new one for every package: the size and hash change. */
-export function makeManifest(appInfo, ipkBytes, ipkUrl) {
+/**
+ * The manifest for one exact package. Make a new one for every package: the size and hash change.
+ * iconUrl replaces the icon's GitHub address, for a local test before the repository is public.
+ */
+export function makeManifest(appInfo, ipkBytes, ipkUrl, iconUrl = ICON_URL) {
   return {
     id: appInfo.id,
     version: appInfo.version,
     type: appInfo.type,
     title: appInfo.title,
     appDescription: DESCRIPTION,
-    iconUri: ICON_URL,
+    iconUri: iconUrl,
     sourceUrl: REPOSITORY_URL,
     // The app needs nothing root gives, so it also installs on a TV in developer mode.
     rootRequired: false,
