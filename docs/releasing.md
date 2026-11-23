@@ -1,49 +1,78 @@
 # Releasing a new version
 
 A release is three files: the package (`.ipk`), its Homebrew Channel manifest, and the repository index
-`webosbrew/apps.json`. `npm run release` makes all three from one build, so their version, size and
-checksum always agree. People on Route A of [install.md](install.md) get updates through the index;
-people on Route B download the package from the GitHub release.
+`webosbrew/apps.json`. `npm run release` makes all three from one build.
+
+**The one rule:** upload exactly the files from your last `npm run release`, and commit the
+`webosbrew/apps.json` from that same run. Every build of the package comes out slightly different (the
+packaging tool stamps the time into it), and Homebrew Channel checks the package against the size and
+checksum written into `apps.json`. Files from two different runs do not match, and the install fails with
+a checksum error.
+
+Between releases, the committed `webosbrew/apps.json` holds the last real release, or no apps at all
+before the first one.
+
+## Before the first release
+
+1. Choose a licence and add a `LICENSE` file. Without one, nobody may legally reuse the code, and
+   webosbrew's main list only accepts open-source apps.
+2. Make the GitHub repository public (**Settings**, then **General**, then **Change visibility** at the
+   bottom). Every link in [install.md](install.md), the app's icon and the downloads only work once it is
+   public.
 
 ## Steps
 
-1. Set the new version in `package.json` (only there: the build copies it everywhere else). Use
-   `major.minor.patch`, such as `1.1.0`.
+1. Set the new version in `package.json` (only there: the build copies it everywhere else, including the
+   Settings screen). Use `major.minor.patch`, such as `1.1.0`.
 2. Add an entry at the top of [CHANGELOG.md](../CHANGELOG.md).
-3. Run `npm run check`, then `npm run release`. It prints what it made:
+3. Run `npm run check`. (On a fresh clone, run `npm install` once first, or nothing will build.)
+4. Optional, but worth doing: test on your own TV (next section). Do it now, before step 5.
+5. Run `npm run release`. It prints what it made:
    - `dist/release/net.badacid.homeassistlg_<version>_all.ipk`
    - `dist/release/net.badacid.homeassistlg.manifest.json`
    - `webosbrew/apps.json` (changed in your folder, not yet committed)
-4. Commit everything except `webosbrew/apps.json`, and push.
-5. On GitHub, create a release with the tag `v<version>` (for example `v1.1.0`), paste the changelog
+6. Commit and push everything except `webosbrew/apps.json`.
+7. On GitHub, create a release with the tag `v<version>` (for example `v1.1.0`), paste the changelog
    entry as its description, and attach **both** files from `dist/release/`. Publish it.
-6. Only now commit and push `webosbrew/apps.json`. Doing this last means the index never points at a
+8. Now commit and push `webosbrew/apps.json`. Doing this last means the index never points at a
    release that does not exist yet.
 
-The manifest's address in the index is GitHub's "latest release" link, so it always finds the newest
-manifest; the manifest in turn names the exact package for its version.
+Do not run `npm run package` or `npm run release` again between steps 5 and 8. If you do, start again
+from step 5, and replace the files on the GitHub release with the new ones.
 
-## Checking on your own TV before publishing
+Homebrew Channel reads the manifest copied inside `apps.json`, so step 8 is what delivers the update to
+people. The separate manifest file on the release is only used by a listing in webosbrew's own
+repository (below).
 
-This installs the release through Homebrew Channel exactly as other people will, but served from your
+## Testing on your own TV before publishing
+
+This installs the app through Homebrew Channel exactly as other people will, but served from your
 computer, so nothing is published.
 
-1. Find your computer's address on the home network (on Windows, `ipconfig`; look for "IPv4 Address").
-2. Run, with your address:
+1. Find your computer's address on the home network. In PowerShell, run `ipconfig` and look under your
+   **Ethernet** or **Wi-Fi** adapter for **IPv4 Address**. It looks like `192.168.1.42`. Use this
+   address wherever `<address>` appears below. (Ignore adapters named WSL, Hyper-V, VirtualBox or VPN.)
+2. Run these, one at a time:
 
    ```
    npm run package
-   node scripts/release.mjs --base-url http://192.168.1.10:8080
-   npx http-server dist/release -p 8080
+   node scripts/release.mjs --base-url http://<address>:8080
+   npx http-server dist/release -p 8080 --cors
    ```
 
-   With `--base-url`, every link points at your computer and the index is written into `dist/release/`,
-   so the committed `webosbrew/apps.json` is untouched.
+   With `--base-url`, every link points at your computer, the icon is served from it too, and the index
+   is written into `dist/release/`, so the committed `webosbrew/apps.json` is untouched. The first
+   `npx http-server` asks to download it: answer `y`.
 
-3. In Homebrew Channel on the TV, open **Settings**, choose **Add repository**, and enter
-   `http://192.168.1.10:8080/apps.json` (with your address). Install the app from the list.
-4. When done, remove that repository from Homebrew Channel's settings and stop the server (Ctrl+C).
-   Windows may ask whether Node may accept connections: allow it on private networks.
+3. Check that `http://<address>:8080/apps.json` opens in a browser on your phone. If it does not,
+   Windows Firewall is blocking it. Allow Node.js on private networks under **Windows Security**,
+   **Firewall & network protection**, **Allow an app through firewall**.
+4. In Homebrew Channel on the TV, open **Settings**, choose **Add repository**, and enter
+   `http://<address>:8080/apps.json`. Install the app from the list, and check the version at the bottom
+   of the app's Settings screen.
+5. When done, remove that repository from Homebrew Channel's settings and stop the server (Ctrl+C).
+
+These test files are not the release. The real release is made in step 5 of the steps above.
 
 ## Listing in the main Homebrew Channel repository (optional)
 

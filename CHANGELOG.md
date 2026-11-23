@@ -14,5 +14,6 @@ The first version for other people. Install it with [docs/install.md](docs/insta
   vacuums, and cameras as refreshing still pictures.
 - Locks, alarms, and doors, garage doors and gates are deliberately left out, together with every other
   part of the same device, so nothing on the TV can open your home.
+- The app's version is shown at the bottom of the Settings screen.
 - Works on webOS 4.0 and newer; tested on an LG C9 (webOS 4.5).
 - Installs through Homebrew Channel on rooted TVs, or with webOS Dev Manager in developer mode.
