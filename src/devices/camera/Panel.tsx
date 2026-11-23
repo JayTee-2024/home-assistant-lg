@@ -98,23 +98,28 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
     // HAVE_CURRENT_DATA (2): a frame has been shown. Before that there is nothing worth keeping.
     if (recordingId === null || element.readyState < 2 || element.videoWidth === 0) return;
     try {
-      // DIAG: time each step, and copy a small version first.
-      diag('stop pressed, video ' + element.videoWidth + 'x' + element.videoHeight);
-      const small = document.createElement('canvas');
-      small.width = 160;
-      small.height = 160;
-      const smallDrawing = small.getContext('2d');
+      // Copy the frame, then read its pixels out and write them into a second canvas. On the
+      // LG C9 a canvas that a video was drawn into still depends on the TV's video hardware,
+      // and shows black for 20 seconds to a minute; the second canvas holds plain pixels.
+      const width = element.videoWidth;
+      const height = element.videoHeight;
+      const copy = document.createElement('canvas');
+      copy.width = width;
+      copy.height = height;
+      const copyDrawing = copy.getContext('2d');
+      if (copyDrawing === null) return;
       let t = Date.now();
-      if (smallDrawing !== null) smallDrawing.drawImage(element, 0, 0, 160, 160);
-      diag('small copy took ' + (Date.now() - t) + 'ms');
+      copyDrawing.drawImage(element, 0, 0);
+      const pixels = copyDrawing.getImageData(0, 0, width, height);
+      diag('copy and read ' + (Date.now() - t) + 'ms, brightness ' + brightness(pixels.data));
       const canvas = document.createElement('canvas');
-      canvas.width = element.videoWidth;
-      canvas.height = element.videoHeight;
+      canvas.width = width;
+      canvas.height = height;
       const drawing = canvas.getContext('2d');
       if (drawing === null) return;
       t = Date.now();
-      drawing.drawImage(element, 0, 0);
-      diag('full copy took ' + (Date.now() - t) + 'ms');
+      drawing.putImageData(pixels, 0, 0);
+      diag('written to plain canvas ' + (Date.now() - t) + 'ms');
       saveLiveFrame(entityId, { image: canvas, takenAt: new Date(), recordingId });
       diag('frame saved');
     } catch (error) {
@@ -225,4 +230,15 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
       {controls.status !== null && <div class="camera-status">{controls.status}</div>}
     </div>
   );
+}
+
+/** DIAG: the average brightness (0 to 255) of a spread of pixels. */
+function brightness(data: Uint8ClampedArray): number {
+  let total = 0;
+  let count = 0;
+  for (let i = 0; i < data.length; i += 4 * 997) {
+    total += (data[i] ?? 0) + (data[i + 1] ?? 0) + (data[i + 2] ?? 0);
+    count += 3;
+  }
+  return count === 0 ? 0 : Math.round(total / count);
 }
