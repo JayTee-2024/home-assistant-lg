@@ -14,8 +14,11 @@
  */
 
 export interface LiveFrame {
-  /** The frame as a picture address (a data: URL). */
-  url: string;
+  /**
+   * The frame, copied from the video. Kept as a canvas and drawn straight onto the screen:
+   * the LG C9 takes about 20 seconds to show the same frame encoded as a JPEG picture.
+   */
+  image: HTMLCanvasElement;
   takenAt: Date;
   /** The camera's `last_video_id` when the frame was taken. */
   recordingId: string;

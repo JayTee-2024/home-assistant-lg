@@ -101,11 +101,7 @@ export function CameraPanel({ entity, homeAddress, liveVideo }: PanelProps) {
       const drawing = canvas.getContext('2d');
       if (drawing === null) return;
       drawing.drawImage(element, 0, 0);
-      saveLiveFrame(entityId, {
-        url: canvas.toDataURL('image/jpeg', 0.85),
-        takenAt: new Date(),
-        recordingId,
-      });
+      saveLiveFrame(entityId, { image: canvas, takenAt: new Date(), recordingId });
     } catch {
       // A frame that cannot be copied is not worth an error: the old picture stays.
     }

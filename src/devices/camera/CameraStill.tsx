@@ -6,12 +6,22 @@
  *   "Live at 16:42"    the saved frame from watching live
  *   "Last recording"   Home Assistant's picture, for cameras where it is not a current view
  *   (no label)         Home Assistant's picture, which is current
+ *
+ * Home Assistant's picture stays loaded underneath the saved frame, so when a newer
+ * recording replaces the frame there is no wait on a black screen: the picture is already
+ * there, and refreshes in place.
  */
 
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import type { EntityState } from '../../core/home-assistant';
 import { CameraPicture } from './CameraPicture';
-import { liveFrameFor, liveTimeLabel, onLiveFramesChanged, stillFor } from './live-frames';
+import {
+  liveFrameFor,
+  liveTimeLabel,
+  onLiveFramesChanged,
+  stillFor,
+  type LiveFrame,
+} from './live-frames';
 import { readCamera } from './model';
 
 export interface CameraStillProps {
@@ -29,19 +39,30 @@ export function CameraStill({ entity, homeAddress, refreshMs }: CameraStillProps
 
   const still = stillFor(readCamera(entity).recordingId, frame);
 
-  if (still.kind === 'live-frame') {
-    return (
-      <div class="camera-still">
-        <img class="camera-picture" src={still.frame.url} alt="" />
-        <div class="camera-label">{liveTimeLabel(still.frame.takenAt)}</div>
-      </div>
-    );
-  }
-
   return (
     <div class="camera-still">
       <CameraPicture entity={entity} homeAddress={homeAddress} refreshMs={refreshMs} />
+      {still.kind === 'live-frame' && <FrameCanvas frame={still.frame} />}
+      {still.kind === 'live-frame' && (
+        <div class="camera-label">{liveTimeLabel(still.frame.takenAt)}</div>
+      )}
       {still.kind === 'recording' && <div class="camera-label">Last recording</div>}
     </div>
   );
+}
+
+/** Draws the saved frame onto a canvas of the same size; CSS fits it to the space. */
+function FrameCanvas({ frame }: { frame: LiveFrame }) {
+  const canvas = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const target = canvas.current;
+    if (target === null) return;
+    target.width = frame.image.width;
+    target.height = frame.image.height;
+    const drawing = target.getContext('2d');
+    if (drawing !== null) drawing.drawImage(frame.image, 0, 0);
+  }, [frame]);
+
+  return <canvas ref={canvas} class="camera-picture camera-frame" />;
 }

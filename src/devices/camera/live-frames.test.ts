@@ -13,7 +13,7 @@ import {
 } from './live-frames';
 
 const frame = (recordingId: string): LiveFrame => ({
-  url: 'data:image/jpeg;base64,AAAA',
+  image: {} as HTMLCanvasElement,
   takenAt: new Date(2026, 10, 23, 16, 42),
   recordingId,
 });

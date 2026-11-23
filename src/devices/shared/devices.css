@@ -138,6 +138,13 @@
   height: 100%;
 }
 
+/* The saved live frame, laid over Home Assistant's picture (which stays loaded beneath it). */
+.camera-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
 .camera-label {
   position: absolute;
   bottom: 0.75rem;
