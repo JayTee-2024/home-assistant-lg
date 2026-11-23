@@ -231,3 +231,34 @@ describe('the WebSocket', () => {
     expect(JSON.stringify(sampleHome)).toBe(before);
   });
 });
+
+describe('making the stand-in misbehave, for tests', () => {
+  it('answers a broken command with an error, as Home Assistant does while it is starting', () => {
+    const home = createFakeHome(sampleHome);
+    home.breakCommand('config/device_registry/list');
+    const { socket, received } = openSignedInSocket(home);
+
+    socket.receive({ id: 1, type: 'config/device_registry/list' });
+
+    expect(received[2].success).toBe(false);
+  });
+
+  it('never answers a silenced command', () => {
+    const home = createFakeHome(sampleHome);
+    home.silenceCommand('subscribe_entities');
+    const { socket, received } = openSignedInSocket(home);
+
+    socket.receive({ id: 1, type: 'subscribe_entities' });
+
+    expect(received.length).toBe(2);
+  });
+
+  it('counts the sockets that are open', () => {
+    const home = createFakeHome(sampleHome);
+    const { socket } = openSignedInSocket(home);
+
+    expect(home.openSockets()).toBe(1);
+    socket.close();
+    expect(home.openSockets()).toBe(0);
+  });
+});

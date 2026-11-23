@@ -30,6 +30,11 @@ export function createFakeHome(sampleHome) {
   const refreshTokens = new Set();
   /** One entry per open socket that has subscribed to entities: { send, subscriptionId }. */
   const entitySubscribers = [];
+  /** Commands that answer with an error, set by tests through breakCommand. */
+  const brokenCommands = new Set();
+  /** Commands that never get an answer, set by tests through silenceCommand. */
+  const silentCommands = new Set();
+  let openSocketCount = 0;
   let counter = 0;
 
   const newId = (prefix) => prefix + '-' + String(++counter);
@@ -128,7 +133,9 @@ export function createFakeHome(sampleHome) {
    */
   function openSocket(sendToClient) {
     let signedIn = false;
+    let isOpen = true;
     const subscriber = { send: sendToClient, subscriptionId: null };
+    openSocketCount += 1;
 
     sendToClient({ type: 'auth_required', ha_version: HA_VERSION });
 
@@ -145,6 +152,12 @@ export function createFakeHome(sampleHome) {
         } else {
           sendToClient({ type: 'auth_invalid', message: 'Invalid access token or password' });
         }
+        return;
+      }
+
+      if (silentCommands.has(message.type)) return;
+      if (brokenCommands.has(message.type)) {
+        failure(message.id, 'home_assistant_error', 'Home Assistant is not ready yet.');
         return;
       }
 
@@ -193,6 +206,8 @@ export function createFakeHome(sampleHome) {
     }
 
     function close() {
+      if (isOpen) openSocketCount -= 1;
+      isOpen = false;
       const index = entitySubscribers.indexOf(subscriber);
       if (index !== -1) entitySubscribers.splice(index, 1);
     }
@@ -298,5 +313,11 @@ export function createFakeHome(sampleHome) {
     /** The current states, for tests and for the server's "something changes by itself" timer. */
     states: () => home.states,
     setState,
+    /** For tests: makes one WebSocket command answer with an error from now on. */
+    breakCommand: (type) => brokenCommands.add(type),
+    /** For tests: makes one WebSocket command go unanswered from now on. */
+    silenceCommand: (type) => silentCommands.add(type),
+    /** For tests: how many WebSocket sessions are open. */
+    openSockets: () => openSocketCount,
   };
 }

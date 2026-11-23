@@ -47,6 +47,14 @@ const CANNOT_REACH = 'Could not reach Home Assistant at this address.';
 const NOT_HOME_ASSISTANT = 'Something answered at this address, but it is not Home Assistant.';
 const TOOK_TOO_LONG = 'Sign-in took too long. Please try again.';
 
+/**
+ * Shown when Home Assistant refuses to start a sign-in from this app (HTTP 403). That is
+ * its cross-origin check, which the LG C9 does not trigger but a desktop browser, and
+ * perhaps a newer TV, does. The access token route goes round it.
+ */
+export const SIGN_IN_REFUSED =
+  'Home Assistant refused the sign-in from this TV. Use "Advanced: use an access token" instead.';
+
 export function beginSignIn(send: HttpSend, address: string): Promise<SignInStep> {
   return send({
     method: 'POST',
@@ -55,6 +63,7 @@ export function beginSignIn(send: HttpSend, address: string): Promise<SignInStep
     jsonBody: { client_id: CLIENT_ID, handler: ['homeassistant', null], redirect_uri: CLIENT_ID },
   }).then(
     (answer) => {
+      if (answer.status === 403) return { kind: 'failed', message: SIGN_IN_REFUSED } as SignInStep;
       if (answer.status >= 400) return refusal(answer);
 
       const flow = readJson(answer);

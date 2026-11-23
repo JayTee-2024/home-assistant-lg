@@ -293,3 +293,117 @@ describe('findDevice', () => {
     expect(findDevice(devices, 'device:nope')).toBeNull();
   });
 });
+
+describe('buildDevices: devices that must never be controlled from the TV', () => {
+  /** Adds an entity with a state to a device in the sample home. */
+  function addEntity(home: HomeSnapshot, deviceId: string, entityId: string, attributes = {}) {
+    home.states[entityId] = { entity_id: entityId, state: 'off', attributes };
+    home.entities.push({
+      entity_id: entityId,
+      device_id: deviceId,
+      area_id: null,
+      disabled_by: null,
+      hidden_by: null,
+      entity_category: null,
+      name: null,
+      original_name: entityId,
+    });
+  }
+  const withSwitch: PartType = {
+    id: 'switch',
+    domains: ['switch', 'button'],
+    mainOrder: 80,
+    cardSize: 'small',
+    supports: () => true,
+  };
+
+  it('gives a garage door no parts, even when it also has a button that would open it', () => {
+    const home = sampleHome();
+    addEntity(home, 'dev_garage', 'button.garage_toggle');
+
+    const garage = findDevice(buildDevices(home, [...partTypes, withSwitch]), 'device:dev_garage');
+
+    expect(garage?.parts).toEqual([]);
+  });
+
+  it('gives a lock no parts, even its battery level', () => {
+    const home = sampleHome();
+    addEntity(home, 'dev_lock', 'sensor.front_door_lock_battery', { device_class: 'battery' });
+
+    expect(findDevice(buildDevices(home, partTypes), 'device:dev_lock')?.parts).toEqual([]);
+  });
+
+  it('treats a device with an alarm panel the same way', () => {
+    const home = sampleHome();
+    addEntity(home, 'dev_plug_tv', 'alarm_control_panel.house');
+
+    expect(
+      findDevice(buildDevices(home, [...partTypes, withSwitch]), 'device:dev_plug_tv')?.parts,
+    ).toEqual([]);
+  });
+
+  it('treats a door or gate cover the same way, and a cover whose kind is not known yet', () => {
+    for (const deviceClass of ['door', 'gate']) {
+      const home = sampleHome();
+      addEntity(home, 'dev_plug_kettle', 'cover.side_' + deviceClass, {
+        device_class: deviceClass,
+      });
+      expect(findDevice(buildDevices(home, partTypes), 'device:dev_plug_kettle')?.parts).toEqual(
+        [],
+      );
+    }
+
+    const home = sampleHome();
+    home.entities.push({
+      entity_id: 'cover.not_reported_yet',
+      device_id: 'dev_plug_kettle',
+      area_id: null,
+      disabled_by: null,
+      hidden_by: null,
+      entity_category: null,
+      name: null,
+      original_name: 'Cover',
+    });
+    expect(findDevice(buildDevices(home, partTypes), 'device:dev_plug_kettle')?.parts).toEqual([]);
+  });
+
+  it('still allows a device with a blind, which is a cover but not a door', () => {
+    const home = sampleHome();
+    addEntity(home, 'dev_plug_kettle', 'cover.kitchen_blind', { device_class: 'blind' });
+
+    expect(
+      findDevice(buildDevices(home, partTypes), 'device:dev_plug_kettle')?.parts.length,
+    ).toBeGreaterThan(0);
+  });
+
+  it('ignores a disabled lock entity on a device', () => {
+    const home = sampleHome();
+    addEntity(home, 'dev_plug_tv', 'lock.child_lock');
+    const lock = home.entities.filter((entry) => entry.entity_id === 'lock.child_lock')[0];
+    if (lock) lock.disabled_by = 'user';
+
+    expect(
+      findDevice(buildDevices(home, [...partTypes, withSwitch]), 'device:dev_plug_tv')?.parts
+        .length,
+    ).toBe(1);
+  });
+});
+
+describe('buildDevices: isComplete', () => {
+  it('is true when every shown entity of the device has reported a state', () => {
+    expect(sampleDevice('device:dev_lifx_lamp').isComplete).toBe(true);
+  });
+
+  it('is false while one of its shown entities has not reported yet, as just after Home Assistant starts', () => {
+    const home = sampleHome();
+    delete home.states['light.lounge_lamp'];
+
+    expect(findDevice(buildDevices(home, partTypes), 'device:dev_lifx_lamp')?.isComplete).toBe(
+      false,
+    );
+  });
+
+  it('ignores disabled entities, which never report', () => {
+    expect(sampleDevice('device:dev_plug_kettle').isComplete).toBe(true);
+  });
+});

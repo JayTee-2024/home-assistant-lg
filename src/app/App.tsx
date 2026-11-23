@@ -15,7 +15,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { buildDevices, findDevice, groupByRoom, type Device } from '../core/devices';
 import { EMPTY_HOME, type HomeSnapshot } from '../core/home-assistant';
-import type { ConnectionStatus, HomeConnection } from '../core/home-connection';
+import type { ConnectionStatus, HomeConnection, OpenFailure } from '../core/home-connection';
 import { withTimeout } from '../core/http';
 import { addCard, hasCard, pageCount, removeCard, withCurrentSizes } from '../core/layout';
 import { createLongPress } from '../core/long-press';
@@ -80,7 +80,7 @@ export function App() {
   const [phase, setPhase] = useState<Phase>('starting');
   const [saved, setSaved] = useState<SavedState>(() => parseSavedState(readSavedText()));
   const [notice, setNotice] = useState<string | null>(null);
-  const [hasConnectFailed, setHasConnectFailed] = useState(false);
+  const [connectFailure, setConnectFailure] = useState<OpenFailure | null>(null);
   const [home, setHome] = useState<HomeSnapshot>(EMPTY_HOME);
   const [status, setStatus] = useState<ConnectionStatus>('connected');
   const [pending, setPending] = useState<PendingStates>({});
@@ -95,6 +95,13 @@ export function App() {
   const savedRef = useRef(saved);
   const connectionRef = useRef<HomeConnection | null>(null);
   const retryTimer = useRef<number | null>(null);
+  /**
+   * Counts connection attempts. Each attempt remembers its number, and anything it does
+   * later (succeed, fail, save new tokens) is ignored once a newer attempt has started or
+   * the person has signed out. Without this, a slow attempt the person had already left
+   * could pull them off the sign-in screen, or bring back a sign-in they had abandoned.
+   */
+  const attempt = useRef(0);
   const homeRef = useRef(home);
   const toastTimer = useRef<number | null>(null);
   /** What had focus before a panel or Settings opened, to return to when it closes. */
@@ -132,14 +139,21 @@ export function App() {
   function connect(signIn: SavedSignIn) {
     stopRetrying();
     setPhase('connecting');
+    attempt.current += 1;
+    const thisAttempt = attempt.current;
+    const isCurrent = () => attempt.current === thisAttempt;
 
-    openHomeConnection(signIn, (fresh) =>
-      updateSaved((state) => ({ ...state, signIn: fresh })),
-    ).then(
+    openHomeConnection(signIn, (fresh) => {
+      if (isCurrent()) updateSaved((state) => ({ ...state, signIn: fresh }));
+    }).then(
       (connection) => {
+        if (!isCurrent()) {
+          connection.close();
+          return;
+        }
         connectionRef.current = connection;
         setUserName(connection.userName);
-        setHasConnectFailed(false);
+        setConnectFailure(null);
         setStatus('connected');
         connection.onHome((next) => {
           // A new report from Home Assistant settles the predictions it covers.
@@ -155,24 +169,31 @@ export function App() {
         setPhase('home');
       },
       (error: Error) => {
+        if (!isCurrent()) return;
         if (error.message === 'sign-in-rejected') {
           signOutLocally(SIGN_IN_REJECTED);
           return;
         }
-        // Home Assistant did not answer. Say so, and try again shortly.
-        setHasConnectFailed(true);
-        retryTimer.current = setTimeout(() => connect(signIn), RETRY_DELAY_MS);
+        // Home Assistant did not answer, or was not ready. Say so, and try again shortly,
+        // with the newest saved tokens.
+        setConnectFailure(error.message === 'not-ready' ? 'not-ready' : 'cannot-reach');
+        retryTimer.current = setTimeout(() => {
+          const latest = savedRef.current.signIn;
+          if (latest !== null && isCurrent()) connect(latest);
+        }, RETRY_DELAY_MS);
       },
     );
   }
 
   /** Forgets the sign-in on this TV and shows the sign-in screen. The layout is kept. */
   function signOutLocally(reason: string | null) {
+    // Ends any attempt in progress (see `attempt`).
+    attempt.current += 1;
     stopRetrying();
     if (connectionRef.current !== null) connectionRef.current.close();
     connectionRef.current = null;
     updateSaved(afterSignOut);
-    setHasConnectFailed(false);
+    setConnectFailure(null);
     setOverlay(NO_OVERLAY);
     setPending({});
     setPage(0);
@@ -203,6 +224,9 @@ export function App() {
   }
 
   function openOverlay(next: Overlay) {
+    // A card for a device Home Assistant no longer has has no panel to open.
+    if (next.kind === 'panel' && findDevice(current.current.devices, next.deviceId) === null)
+      return;
     focusBeforeOverlay.current = document.activeElement as HTMLElement | null;
     setOverlay(next);
   }
@@ -227,15 +251,18 @@ export function App() {
 
   /** In the picker: puts the device on the home screen, or takes it off. */
   function toggleDevice(device: Device) {
-    const size = device.cardSize;
-    if (size === null) return;
+    if (hasCard(savedRef.current.layout, device.id)) {
+      // Always allowed, even for a device that is no longer supported, so no card can get stuck.
+      updateSaved((state) => ({ ...state, layout: removeCard(state.layout, device.id) }));
+      return;
+    }
 
-    updateSaved((state) => ({
-      ...state,
-      layout: hasCard(state.layout, device.id)
-        ? removeCard(state.layout, device.id)
-        : addCard(state.layout, device.id, size),
-    }));
+    const size = device.cardSize;
+    if (size === null) {
+      showToast(device.name + ' is not supported yet.');
+      return;
+    }
+    updateSaved((state) => ({ ...state, layout: addCard(state.layout, device.id, size) }));
   }
 
   /** Signs out for real: Home Assistant cancels this TV's sign-in, then the TV forgets it. */
@@ -270,14 +297,25 @@ export function App() {
   // Keep the saved layout in step with the devices as they are now (see withCurrentSizes).
   useEffect(() => {
     if (phase !== 'home') return;
+    // A device that has not fully reported yet (just after Home Assistant starts) may look
+    // smaller than it is. Leave its card alone until it has, or the layout would be shuffled
+    // every time Home Assistant restarts.
     const sizeOf = (deviceId: string) => {
       const device = findDevice(devices, deviceId);
-      return device === null ? null : device.cardSize;
+      return device === null || !device.isComplete ? null : device.cardSize;
     };
     if (withCurrentSizes(savedRef.current.layout, sizeOf) !== savedRef.current.layout) {
       updateSaved((state) => ({ ...state, layout: withCurrentSizes(state.layout, sizeOf) }));
     }
   }, [home, phase]);
+
+  // If the device whose panel is open disappears from Home Assistant, close the panel, so
+  // no invisible overlay is left holding the arrows.
+  useEffect(() => {
+    if (overlay.kind === 'panel' && findDevice(devices, overlay.deviceId) === null) {
+      setOverlay(NO_OVERLAY);
+    }
+  }, [overlay, home]);
 
   // While any press is waiting for confirmation, check each second for ones that have waited too long.
   useEffect(() => {
@@ -332,10 +370,18 @@ export function App() {
       const now = current.current;
 
       if (key === 'ok') {
+        // While OK is held after a press on a card, the remote keeps sending OK. Swallow every
+        // one until the key comes up: once a long press has opened the panel, those repeats
+        // would otherwise press the panel's first button.
+        if (pressedCard !== null) {
+          longPress.keyDown(true);
+          event.preventDefault();
+          return;
+        }
         const card = focusedCard();
-        if (card === null) return;
-        if (!event.repeat) pressedCard = card;
-        longPress.keyDown(event.repeat);
+        if (card === null || event.repeat) return;
+        pressedCard = card;
+        longPress.keyDown(false);
         event.preventDefault();
         return;
       }
@@ -397,7 +443,7 @@ export function App() {
     return (
       <ConnectingScreen
         address={saved.signIn === null ? '' : saved.signIn.address}
-        hasFailed={hasConnectFailed}
+        failure={connectFailure}
         onSignInAgain={() => signOutLocally(null)}
         onClose={closeApp}
       />

@@ -13,7 +13,7 @@
  * screen's memory only until it has been sent.
  */
 
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { DEFAULT_ADDRESS, normaliseAddress } from '../../core/address';
 import type { HttpSend } from '../../core/http';
 import type { SavedSignIn } from '../../core/saved-state';
@@ -46,6 +46,12 @@ export function SignInScreen(props: SignInScreenProps) {
   const [flowId, setFlowId] = useState('');
   const [message, setMessage] = useState<string | null>(props.notice);
   const [isBusy, setIsBusy] = useState(false);
+  /**
+   * Numbers each request to Home Assistant. An answer is used only if no newer request was
+   * made and the person has not moved to another form meanwhile, so a slow answer can never
+   * wipe what they are typing.
+   */
+  const request = useRef(0);
   /** Counts Home Assistant's answers, so the focus can be put back after each one. */
   const [attempts, setAttempts] = useState(0);
 
@@ -67,7 +73,9 @@ export function SignInScreen(props: SignInScreenProps) {
     }
     if (step.kind === 'credentials' || step.kind === 'code') {
       setFlowId(step.flowId);
-      setMessage(step.message ?? message);
+      // Home Assistant's own message for this step, or else the notice the app started with.
+      // Never the previous message: that belonged to the step before ("Could not reach ...").
+      setMessage(step.message ?? props.notice);
       setPassword('');
       setCode('');
       setForm(step.kind);
@@ -79,11 +87,28 @@ export function SignInScreen(props: SignInScreenProps) {
     setForm('address');
   }
 
+  /** Sends one request, and hands its answer to `show` only if it is still wanted. */
+  function ask(work: Promise<SignInStep>, triedAddress: string) {
+    request.current += 1;
+    const thisRequest = request.current;
+    work.then((step) => {
+      if (request.current === thisRequest) show(step, triedAddress);
+    });
+  }
+
+  /** Moves to another form, dropping any answer still on its way. */
+  function goTo(next: Form) {
+    request.current += 1;
+    setIsBusy(false);
+    setMessage(null);
+    setForm(next);
+  }
+
   function tryAddress(candidate: string) {
     setAddress(candidate);
     setForm('looking');
     setMessage(props.notice);
-    beginSignIn(props.send, candidate).then((step) => show(step, candidate));
+    ask(beginSignIn(props.send, candidate), candidate);
   }
 
   // On first showing, try the starting address straight away.
@@ -114,6 +139,21 @@ export function SignInScreen(props: SignInScreenProps) {
     tryAddress(result.url);
   }
 
+  /**
+   * The access token route from the address form, for when the usual sign-in cannot start
+   * (Home Assistant refuses it, or a desktop browser blocks it). The token is used with the
+   * address typed in the field.
+   */
+  function useTokenForTypedAddress() {
+    const result = normaliseAddress(typedAddress);
+    if (!result.ok) {
+      setMessage('Enter the address of your Home Assistant first.');
+      return;
+    }
+    setAddress(result.url);
+    goTo('token');
+  }
+
   function signIn() {
     if (username === '' || password === '') {
       setMessage('Enter your username and password.');
@@ -121,15 +161,13 @@ export function SignInScreen(props: SignInScreenProps) {
     }
     setIsBusy(true);
     setMessage(null);
-    submitCredentials(props.send, address, flowId, username, password, Date.now()).then((step) =>
-      show(step, address),
-    );
+    ask(submitCredentials(props.send, address, flowId, username, password, Date.now()), address);
   }
 
   function verifyCode() {
     setIsBusy(true);
     setMessage(null);
-    submitCode(props.send, address, flowId, code, Date.now()).then((step) => show(step, address));
+    ask(submitCode(props.send, address, flowId, code, Date.now()), address);
   }
 
   function useToken() {
@@ -176,8 +214,7 @@ export function SignInScreen(props: SignInScreenProps) {
                 class="button button-outline"
                 onClick={() => {
                   setTypedAddress(addressToEdit(address));
-                  setMessage(null);
-                  setForm('address');
+                  goTo('address');
                 }}
               >
                 Change
@@ -199,6 +236,9 @@ export function SignInScreen(props: SignInScreenProps) {
               <button class="button button-main" onClick={connectToTypedAddress}>
                 Connect
               </button>
+              <button class="button button-link" onClick={useTokenForTypedAddress}>
+                Advanced: use an access token
+              </button>
             </div>
           )}
 
@@ -212,13 +252,7 @@ export function SignInScreen(props: SignInScreenProps) {
               <p class="sign-in-note">
                 Your password is not kept on this TV. You can sign out at any time in Settings.
               </p>
-              <button
-                class="button button-link"
-                onClick={() => {
-                  setMessage(null);
-                  setForm('token');
-                }}
-              >
+              <button class="button button-link" onClick={() => goTo('token')}>
                 Advanced: use an access token
               </button>
             </div>
@@ -245,13 +279,7 @@ export function SignInScreen(props: SignInScreenProps) {
               <button class="button button-main" onClick={useToken}>
                 Connect
               </button>
-              <button
-                class="button button-link"
-                onClick={() => {
-                  setMessage(null);
-                  setForm('credentials');
-                }}
-              >
+              <button class="button button-link" onClick={() => tryAddress(address)}>
                 Back to username and password
               </button>
             </div>

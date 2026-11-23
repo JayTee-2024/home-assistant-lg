@@ -41,6 +41,11 @@ export interface Device {
   mainPart: Part | null;
   /** The size of the device's card, from its main part. null when there is no main part. */
   cardSize: CardSize | null;
+  /**
+   * False while one of the device's entities has not reported a state yet, as happens for a
+   * minute after Home Assistant starts. Its parts, and so its card size, may then be wrong.
+   */
+  isComplete: boolean;
 }
 
 export interface Room {
@@ -80,7 +85,13 @@ export function buildDevices(home: HomeSnapshot, partTypes: PartType[]): Device[
     const entries = home.entities.filter(
       (entry) => entry.device_id === registryDevice.id && isShown(entry),
     );
-    const collected = collectParts(entries, home, partTypes);
+    // A device that can unlock, disarm or open something is never controlled from the TV,
+    // not even through its other entities (a garage opener's "toggle" button, say).
+    const isProtected = entries.some((entry) =>
+      isProtectedEntity(entry, home.states[entry.entity_id]),
+    );
+    const collected = isProtected ? [] : collectParts(entries, home, partTypes);
+    const isComplete = entries.every((entry) => home.states[entry.entity_id] !== undefined);
     const firstEntry = entries[0];
 
     devices.push(
@@ -92,6 +103,7 @@ export function buildDevices(home: HomeSnapshot, partTypes: PartType[]): Device[
           'Unnamed device',
         roomName(home, registryDevice.area_id),
         collected,
+        isComplete,
       ),
     );
   }
@@ -120,6 +132,7 @@ export function buildDevices(home: HomeSnapshot, partTypes: PartType[]): Device[
         name,
         roomName(home, entry ? entry.area_id : null),
         collected,
+        true,
       ),
     );
   }
@@ -152,6 +165,22 @@ export function findDevice(devices: Device[], id: string): Device | null {
     if (device.id === id) return device;
   }
   return null;
+}
+
+/**
+ * True for an entity that can unlock a door, disarm an alarm, or open a door, garage or
+ * gate. The design rules these out entirely: whoever holds the remote must never be able
+ * to do any of those. A cover that has not reported yet counts as protected, because its
+ * kind (blind or garage door) is not known until it does.
+ */
+function isProtectedEntity(entry: RegistryEntity, state: EntityState | undefined): boolean {
+  const domain = domainOf(entry.entity_id);
+  if (domain === 'lock' || domain === 'alarm_control_panel') return true;
+  if (domain !== 'cover') return false;
+  if (state === undefined) return true;
+
+  const kind = readText(state, 'device_class');
+  return kind === 'door' || kind === 'garage' || kind === 'gate';
 }
 
 /** False for entities the person, or the integration, has switched off or hidden in Home Assistant. */
@@ -207,6 +236,7 @@ function makeDevice(
   name: string,
   room: string | null,
   collected: CollectedPart[],
+  isComplete: boolean,
 ): Device {
   const ordered = collected.slice().sort(comparePartOrder);
   const main = ordered[0];
@@ -218,6 +248,7 @@ function makeDevice(
     parts: ordered.map((item) => item.part),
     mainPart: main ? main.part : null,
     cardSize: main ? main.type.cardSize : null,
+    isComplete,
   };
 }
 

@@ -34,6 +34,13 @@ describe('the registry', () => {
     expect(deviceTypeFor('teleporter')).toBeNull();
   });
 
+  it('never lets a type claim locks or alarm panels, which must never be controlled from the TV', () => {
+    for (const type of DEVICE_TYPES) {
+      expect(type.domains).not.toContain('lock');
+      expect(type.domains).not.toContain('alarm_control_panel');
+    }
+  });
+
   it('gives every type a name for the picker', () => {
     for (const type of DEVICE_TYPES) {
       expect(type.label.length).toBeGreaterThan(0);

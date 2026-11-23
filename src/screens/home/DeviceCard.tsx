@@ -56,8 +56,10 @@ export function DeviceCard(props: DeviceCardProps) {
         tabIndex={0}
       >
         <div class="card-names">
-          <div class="card-name">Not available</div>
-          <div class="card-room">No longer in Home Assistant</div>
+          <div class="card-name">{device === null ? 'Not available' : device.name}</div>
+          <div class="card-room">
+            {device === null ? 'No longer in Home Assistant' : 'Nothing here can be shown yet'}
+          </div>
         </div>
       </div>
     );

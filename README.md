@@ -85,8 +85,8 @@ On a keyboard, the arrow keys and Enter stand in for the remote, and Escape is B
 to open its panel.
 
 A real Home Assistant refuses the sign-in from a desktop browser (it only accepts it from the TV app, or
-from its own pages). To use a real one from the desktop, choose "Advanced: use an access token" on the
-sign-in screen and paste a long-lived access token from your Home Assistant profile page.
+from its own pages). To use a real one from the desktop, type its address, choose "Advanced: use an
+access token" under the address field and paste a long-lived access token from your Home Assistant profile page.
 
 ## Install on a TV
 

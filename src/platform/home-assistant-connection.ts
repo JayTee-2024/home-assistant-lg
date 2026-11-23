@@ -36,6 +36,9 @@ import {
 import type { ConnectionStatus, HomeConnection, OpenFailure } from '../core/home-connection';
 import type { SavedSignIn } from '../core/saved-state';
 
+/** How long the first full picture of the home may take before the attempt counts as failed. */
+const FIRST_LOAD_TIMEOUT_MS = 20000;
+
 /** The registries are read again when Home Assistant says they changed, but not more often than this. */
 const REGISTRY_REFRESH_DELAY_MS = 1000;
 
@@ -56,15 +59,40 @@ const REGISTRY_EVENTS = [
 export function openHomeConnection(
   signIn: SavedSignIn,
   onTokens: (signIn: SavedSignIn) => void,
+  firstLoadTimeoutMs: number = FIRST_LOAD_TIMEOUT_MS,
 ): Promise<HomeConnection> {
   const auth = makeAuth(signIn, onTokens);
 
   return createConnection({ auth }).then(
-    (connection) => loadHome(connection, auth),
+    (connection) =>
+      withTimeLimit(loadHome(connection, auth), firstLoadTimeoutMs).catch((error: unknown) => {
+        // The socket is open but the home could not be loaded. Close it, or the library
+        // would keep it, and keep reconnecting it, in the background.
+        connection.close();
+        const failure: OpenFailure = error === ERR_INVALID_AUTH ? 'sign-in-rejected' : 'not-ready';
+        throw new Error(failure);
+      }),
     (error: unknown) => {
       throw new Error(failureFor(error));
     },
   );
+}
+
+/** Rejects when `work` has not finished within `ms`. */
+function withTimeLimit<T>(work: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('timeout')), ms);
+    work.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
 }
 
 function makeAuth(signIn: SavedSignIn, onTokens: (signIn: SavedSignIn) => void): Auth {

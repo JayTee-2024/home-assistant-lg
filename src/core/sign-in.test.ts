@@ -6,7 +6,13 @@
 import { describe, expect, it } from 'vitest';
 import { CLIENT_ID } from './client-id';
 import type { HttpAnswer, HttpRequest, HttpSend } from './http';
-import { beginSignIn, signInWithToken, submitCode, submitCredentials } from './sign-in';
+import {
+  beginSignIn,
+  SIGN_IN_REFUSED,
+  signInWithToken,
+  submitCode,
+  submitCredentials,
+} from './sign-in';
 
 const address = 'http://192.168.1.100:8123';
 const NOW = 1700000000000;
@@ -84,6 +90,16 @@ describe('beginSignIn', () => {
     );
 
     expect(step).toEqual({ kind: 'failed', message: 'Invalid client id' });
+  });
+
+  it('points to the access token route when Home Assistant refuses the sign-in from this app', async () => {
+    // What Home Assistant answers when its cross-origin check refuses an app's sign-in.
+    const refused = { status: 403, body: 'CORS preflight request failed' };
+
+    const step = await beginSignIn(scripted(refused).send, address);
+
+    expect(step).toEqual({ kind: 'failed', message: SIGN_IN_REFUSED });
+    expect(SIGN_IN_REFUSED).toContain('access token');
   });
 
   it('gives a plain reason when a refusal carries none', async () => {

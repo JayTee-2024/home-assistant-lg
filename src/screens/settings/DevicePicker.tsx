@@ -68,6 +68,23 @@ interface PickerRowProps {
 function PickerRow({ device, isOnScreen, isFirst, onToggle, onUnsupported }: PickerRowProps) {
   const type = device.mainPart === null ? null : deviceTypeFor(device.mainPart.typeId);
 
+  // A device that lost its supported parts can still have a card. Let it be removed.
+  if (type === null && isOnScreen) {
+    return (
+      <button
+        class="picker-row picker-row-on"
+        aria-pressed
+        data-focus-first={isFirst ? '' : undefined}
+        onClick={() => onToggle(device)}
+      >
+        <span class="picker-icon" />
+        <span class="picker-name">{device.name}</span>
+        <span class="picker-type">Not supported</span>
+        <span class="picker-state">Remove</span>
+      </button>
+    );
+  }
+
   if (type === null) {
     return (
       <button

@@ -57,6 +57,15 @@ function savedSignIn(expiresAt = Date.now() + 1800 * 1000) {
   };
 }
 
+/** Resolves once `isTrue()` holds, checking every 20 ms; fails the test after 2 seconds. */
+async function waitFor(isTrue) {
+  for (let waited = 0; waited < 2000; waited += 20) {
+    if (isTrue()) return;
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+  throw new Error('waited 2 seconds and it never happened');
+}
+
 /** Resolves with the first home for which `isWanted` is true. */
 function nextHome(isWanted) {
   return new Promise((resolve) => {
@@ -152,6 +161,22 @@ describe('openHomeConnection', () => {
     server = null;
 
     await expect(openHomeConnection(signIn, () => {})).rejects.toThrow('cannot-reach');
+  });
+
+  it('rejects with "not-ready", and closes its socket, when Home Assistant refuses part of the first load', async () => {
+    server = await startFakeHomeServer(sampleHome, 0);
+    server.home.breakCommand('config/device_registry/list');
+
+    await expect(openHomeConnection(savedSignIn(), () => {})).rejects.toThrow('not-ready');
+    await waitFor(() => server.home.openSockets() === 0);
+  });
+
+  it('rejects with "not-ready", and closes its socket, when the first states never arrive', async () => {
+    server = await startFakeHomeServer(sampleHome, 0);
+    server.home.silenceCommand('subscribe_entities');
+
+    await expect(openHomeConnection(savedSignIn(), () => {}, 300)).rejects.toThrow('not-ready');
+    await waitFor(() => server.home.openSockets() === 0);
   });
 
   it('cancels the refresh token on sign out', async () => {

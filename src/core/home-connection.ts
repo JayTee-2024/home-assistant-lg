@@ -41,5 +41,12 @@ export interface HomeConnection {
   close(): void;
 }
 
-/** Why a connection could not be opened. openHomeConnection rejects with an Error whose message is one of these. */
-export type OpenFailure = 'cannot-reach' | 'sign-in-rejected';
+/**
+ * Why a connection could not be opened. openHomeConnection rejects with an Error whose
+ * message is one of these.
+ *   cannot-reach      nothing answered at the address
+ *   sign-in-rejected  Home Assistant no longer accepts the saved sign-in
+ *   not-ready         Home Assistant answered but could not give the app its data, as
+ *                     happens for a short while after it starts
+ */
+export type OpenFailure = 'cannot-reach' | 'sign-in-rejected' | 'not-ready';
