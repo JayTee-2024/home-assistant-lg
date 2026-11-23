@@ -14,6 +14,7 @@ export interface ConnectionSectionProps {
 
 export function ConnectionSection(props: ConnectionSectionProps) {
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   // Asking "are you sure?" replaces the button that had the focus, so put the focus on the
   // new buttons (and back again on Cancel). Not when the section first appears: then the
@@ -42,8 +43,15 @@ export function ConnectionSection(props: ConnectionSectionProps) {
             in.
           </p>
           <div class="settings-buttons" data-focus-row>
-            <button class="button button-main" onClick={props.onSignOut}>
-              Sign out
+            <button
+              class={'button button-main' + (isSigningOut ? ' button-busy' : '')}
+              onClick={() => {
+                if (isSigningOut) return;
+                setIsSigningOut(true);
+                props.onSignOut();
+              }}
+            >
+              {isSigningOut ? 'Signing out…' : 'Sign out'}
             </button>
             <button
               class="button button-outline"

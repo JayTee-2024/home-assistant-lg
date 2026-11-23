@@ -24,7 +24,7 @@ import {
   submitCredentials,
   type SignInStep,
 } from '../../core/sign-in';
-import { focusElement, focusFirst, topScope } from '../shared/focus';
+import { focusElement, focusFirst, moveFocus, topScope } from '../shared/focus';
 import { TitleBar } from '../shared/TitleBar';
 
 export interface SignInScreenProps {
@@ -34,6 +34,11 @@ export interface SignInScreenProps {
   startAddress: string | null;
   /** A line to show above the form, such as why signing in is needed again. */
   notice: string | null;
+  /**
+   * An access token Home Assistant just refused. The screen then opens on the token form
+   * with it filled in, so a typo can be fixed without typing it all again.
+   */
+  refusedToken: string | null;
   onSignedIn(signIn: SavedSignIn): void;
   onClose(): void;
 }
@@ -41,7 +46,7 @@ export interface SignInScreenProps {
 type Form = 'looking' | 'address' | 'credentials' | 'code' | 'token';
 
 export function SignInScreen(props: SignInScreenProps) {
-  const [form, setForm] = useState<Form>('looking');
+  const [form, setForm] = useState<Form>(props.refusedToken === null ? 'looking' : 'token');
   const [address, setAddress] = useState(props.startAddress ?? 'http://' + DEFAULT_ADDRESS);
   const [flowId, setFlowId] = useState('');
   const [message, setMessage] = useState<string | null>(props.notice);
@@ -60,7 +65,7 @@ export function SignInScreen(props: SignInScreenProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
-  const [token, setToken] = useState('');
+  const [token, setToken] = useState(props.refusedToken ?? '');
 
   /** Shows the form the step calls for, or hands the finished sign-in to the app. */
   function show(step: SignInStep, triedAddress: string) {
@@ -113,7 +118,7 @@ export function SignInScreen(props: SignInScreenProps) {
 
   // On first showing, try the starting address straight away.
   useEffect(() => {
-    tryAddress(address);
+    if (props.refusedToken === null) tryAddress(address);
     // The empty list means: run once, when the screen first appears.
   }, []);
 
@@ -231,6 +236,7 @@ export function SignInScreen(props: SignInScreenProps) {
                 hint="For example 192.168.1.100:8123"
                 value={typedAddress}
                 onInput={setTypedAddress}
+                onEnter={connectToTypedAddress}
                 isFirst
               />
               <button class="button button-main" onClick={connectToTypedAddress}>
@@ -244,8 +250,20 @@ export function SignInScreen(props: SignInScreenProps) {
 
           {form === 'credentials' && (
             <div class="sign-in-fields">
-              <Field label="Username" value={username} onInput={setUsername} isFirst />
-              <Field label="Password" value={password} onInput={setPassword} isPassword />
+              <Field
+                label="Username"
+                value={username}
+                onInput={setUsername}
+                onEnter={focusNextField}
+                isFirst
+              />
+              <Field
+                label="Password"
+                value={password}
+                onInput={setPassword}
+                onEnter={signIn}
+                isPassword
+              />
               <button class={mainButtonClass} onClick={isBusy ? undefined : signIn}>
                 {isBusy ? 'Signing in…' : 'Sign in'}
               </button>
@@ -260,7 +278,13 @@ export function SignInScreen(props: SignInScreenProps) {
 
           {form === 'code' && (
             <div class="sign-in-fields">
-              <Field label="Two-step code" value={code} onInput={setCode} isFirst />
+              <Field
+                label="Two-step code"
+                value={code}
+                onInput={setCode}
+                onEnter={verifyCode}
+                isFirst
+              />
               <button class={mainButtonClass} onClick={isBusy ? undefined : verifyCode}>
                 {isBusy ? 'Checking…' : 'Verify'}
               </button>
@@ -274,6 +298,7 @@ export function SignInScreen(props: SignInScreenProps) {
                 hint="Made on your profile page in Home Assistant, under Security"
                 value={token}
                 onInput={setToken}
+                onEnter={useToken}
                 isFirst
               />
               <button class="button button-main" onClick={useToken}>
@@ -290,6 +315,14 @@ export function SignInScreen(props: SignInScreenProps) {
   );
 }
 
+/** The key code of Enter, which is also what the TV keyboard's Done key sends. */
+const ENTER = 13;
+
+/** Moves the focus from a field to the next field below it, as Enter in a username does. */
+function focusNextField() {
+  moveFocus(topScope(), 'down');
+}
+
 function Step(props: { number: number; text: string }) {
   return (
     <div class="sign-in-step">
@@ -304,6 +337,8 @@ interface FieldProps {
   hint?: string;
   value: string;
   onInput(value: string): void;
+  /** What Enter (the TV keyboard's Done key) does in this field. */
+  onEnter(): void;
   isPassword?: boolean;
   /** Marks the field that takes focus when its form appears. */
   isFirst?: boolean;
@@ -322,6 +357,12 @@ function Field(props: FieldProps) {
         spellcheck={false}
         data-focus-first={props.isFirst ? '' : undefined}
         onInput={(event) => props.onInput(event.currentTarget.value)}
+        onKeyDown={(event) => {
+          if (event.keyCode === ENTER) {
+            event.preventDefault();
+            props.onEnter();
+          }
+        }}
       />
     </label>
   );

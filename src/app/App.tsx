@@ -79,6 +79,9 @@ const TOAST_MS = 4000;
 const PENDING_CHECK_MS = 1000;
 
 const SIGN_IN_REJECTED = 'Home Assistant did not accept the sign-in. Please sign in again.';
+const TOKEN_REJECTED = 'Home Assistant did not accept that access token. Check it and try again.';
+/** How long signing out may wait for Home Assistant before the TV forgets the sign-in anyway. */
+const SIGN_OUT_LIMIT_MS = 5000;
 const NOT_CONNECTED = 'Not connected to Home Assistant.';
 
 const send = withTimeout(fetchSend, REQUEST_TIMEOUT_MS);
@@ -87,6 +90,7 @@ export function App() {
   const [phase, setPhase] = useState<Phase>('starting');
   const [saved, setSaved] = useState<SavedState>(() => parseSavedState(readSavedText()));
   const [notice, setNotice] = useState<string | null>(null);
+  const [refusedToken, setRefusedToken] = useState<string | null>(null);
   const [connectFailure, setConnectFailure] = useState<OpenFailure | null>(null);
   const [home, setHome] = useState<HomeSnapshot>(EMPTY_HOME);
   const [status, setStatus] = useState<ConnectionStatus>('connected');
@@ -183,7 +187,9 @@ export function App() {
       (error: Error) => {
         if (!isCurrent()) return;
         if (error.message === 'sign-in-rejected') {
-          signOutLocally(SIGN_IN_REJECTED);
+          const isToken = signIn.kind === 'long-lived-token';
+          signOutLocally(isToken ? TOKEN_REJECTED : SIGN_IN_REJECTED);
+          if (isToken) setRefusedToken(signIn.accessToken);
           return;
         }
         // Home Assistant did not answer, or was not ready. Say so, and try again shortly,
@@ -288,7 +294,16 @@ export function App() {
   function signOut() {
     const connection = connectionRef.current;
     const cancelled = connection === null ? Promise.resolve() : connection.signOut();
-    cancelled.then(() => signOutLocally(null));
+    // Home Assistant gets a few seconds to cancel the sign-in. After that the TV forgets it
+    // anyway: a person who asked to sign out must not be left waiting.
+    let isDone = false;
+    const finish = () => {
+      if (isDone) return;
+      isDone = true;
+      signOutLocally(null);
+    };
+    cancelled.then(finish);
+    setTimeout(finish, SIGN_OUT_LIMIT_MS);
   }
 
   /** Shows another page. `from` is the side focus comes in from, when the arrows flipped it. */
@@ -302,6 +317,7 @@ export function App() {
   function handleSignedIn(signIn: SavedSignIn) {
     updateSaved((state) => afterSignIn(state, signIn));
     setNotice(null);
+    setRefusedToken(null);
     connect(signIn);
   }
 
@@ -463,6 +479,7 @@ export function App() {
         send={send}
         startAddress={saved.layoutAddress}
         notice={notice}
+        refusedToken={refusedToken}
         onSignedIn={handleSignedIn}
         onClose={closeApp}
       />
