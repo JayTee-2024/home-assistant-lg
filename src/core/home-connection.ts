@@ -8,6 +8,7 @@
  */
 
 import type { HomeSnapshot } from './home-assistant';
+import type { LiveVideoSource } from './live-video';
 
 /** One instruction to Home Assistant: "light.turn_on for light.lounge_lamp with brightness_pct 50". */
 export interface ServiceCall {
@@ -36,6 +37,8 @@ export interface HomeConnection {
   onStatus(listener: (status: ConnectionStatus) => void): void;
   /** Resolves when Home Assistant has accepted the call. Rejects with an Error carrying its reason. */
   call(call: ServiceCall): Promise<void>;
+  /** Live camera video (see live-video.ts). */
+  liveVideo: LiveVideoSource;
   /** Asks Home Assistant to cancel this TV's sign-in, then closes. Never rejects. */
   signOut(): Promise<void>;
   close(): void;
