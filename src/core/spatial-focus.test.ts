@@ -67,7 +67,7 @@ describe('nextInDirection', () => {
     expect(nextInDirection(cell(1, 1), boxes, 'up')).toBe(0);
   });
 
-  it('goes down from a wide box to the small box nearest its middle, the first on a tie', () => {
+  it('goes down from a wide box to the small box under its left edge', () => {
     const boxes = [cell(0, 0, 2, 1), cell(0, 1), cell(1, 1)];
 
     expect(nextInDirection(cell(0, 0, 2, 1), boxes, 'down')).toBe(1);

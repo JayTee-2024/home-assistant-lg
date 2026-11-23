@@ -31,7 +31,7 @@ const TOLERANCE = 1;
  *   1. boxes in line with `from` win (the same row for Left and Right, the same column
  *      for Up and Down);
  *   2. then the nearest along the direction;
- *   3. then the nearest across it;
+ *   3. then the one that starts nearest across it (see distanceAcross);
  *   4. then the earliest in the list.
  */
 export function nextInDirection(from: Box, candidates: Box[], direction: Direction): number | null {
@@ -84,10 +84,15 @@ function isInLine(from: Box, to: Box, direction: Direction): boolean {
   return to.left < from.left + from.width && from.left < to.left + to.width;
 }
 
-/** How far apart the two boxes' centres are, measured across the direction of travel. */
+/**
+ * How far apart the two boxes start, measured across the direction of travel: the
+ * difference between their left edges for Up and Down, between their top edges for Left
+ * and Right. Using the starting edge (not the centre) means that going Down from a
+ * full-width field lands on the first button of the row under it, not the middle one.
+ */
 function distanceAcross(from: Box, to: Box, direction: Direction): number {
   if (direction === 'left' || direction === 'right') {
-    return Math.abs(to.top + to.height / 2 - (from.top + from.height / 2));
+    return Math.abs(to.top - from.top);
   }
-  return Math.abs(to.left + to.width / 2 - (from.left + from.width / 2));
+  return Math.abs(to.left - from.left);
 }
