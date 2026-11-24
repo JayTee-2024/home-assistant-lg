@@ -14,6 +14,9 @@ for other people: see [docs/install.md](docs/install.md) to install it, and [CHA
 
 To add a type of device, follow [docs/adding-a-device-type.md](docs/adding-a-device-type.md).
 
+Sample image of the app running on an LG C9
+![Home Assist LG on an LG C9](sample-real-screen.jpg)
+
 ## Folder map
 
 ```
