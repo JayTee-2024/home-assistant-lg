@@ -22,7 +22,8 @@ If you do not know which you have: if there is no app called Homebrew Channel on
 3. **Home Assistant's address**, for example `http://192.168.1.100:8123`. It is the address you use to
    open Home Assistant in a web browser at home.
 4. **A Home Assistant username and password for the TV.** You can use your own, but a separate user
-   for the TV is safer, because the TV then cannot change Home Assistant's settings. To make one:
+   for the TV is safer, because the TV then cannot change Home Assistant's settings. (It can still
+   control every device: Home Assistant does not limit that per user.) To make one:
    1. In Home Assistant, open **Settings**, then **People**, then the **Users** tab. (If you do not
       see a Users tab, first turn on **Advanced mode** in your user profile.)
    2. Choose **Add user**. Give it a name such as "Living room TV", a username and a password.
@@ -89,11 +90,26 @@ To update, download the newer `.ipk` and install it the same way. Your sign-in a
 6. A camera opens full screen when you press or hold **OK** on it. Choose **Watch live** to see it
    live, where Home Assistant offers live video for it; sound starts off.
 
-Locks, alarms, and doors, garage doors and gates are deliberately not supported, so nothing on the TV
-can open your home. Devices like these are listed in Settings as **Not supported yet**.
+Locks, alarms, and doors, garage doors and gates are deliberately not shown: they are listed in Settings
+as **Not supported yet**. The app cannot tell what a switch, button, script or scene does, though, so do
+not add one that opens something (a garage door wired to a switch, or a script that unlocks a door).
 
 To sign in as someone else or change the address, open **Settings**, then **Connection**, and choose
 **Sign out**. The back button on the remote leaves the app.
+
+## Keeping it safe
+
+- **Anyone with the remote can use the app.** To stop that, turn on the **PIN lock** in the app's
+  Settings: the app then asks for a 4-digit PIN when it opens and when you come back to it. If you forget
+  the PIN, the lock screen lets you sign out, and you sign in again with your Home Assistant password.
+- **The TV keeps a sign-in pass** from Home Assistant (never your password). Anyone who could copy it off
+  the TV could control your home with it, so **sign out before you sell or give away the TV**: open
+  **Settings**, then **Connection**, then **Sign out**.
+- **To cancel the TV's sign-in from elsewhere**, open your profile in Home Assistant, then **Security**,
+  and delete the TV's entry under **Refresh tokens** (or under **Long-lived access tokens**, if you
+  signed in with one).
+- **On your home network, an `http://` address is not encrypted.** That is normal for Home Assistant at
+  home. If your Home Assistant has an `https://` address, you can use that instead.
 
 ## If something goes wrong
 

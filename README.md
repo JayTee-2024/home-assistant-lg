@@ -9,7 +9,7 @@ Read "Readable and extendable code" there before changing anything.
 
 **Status:** every device type in the design is in: lights, switches and plugs, heating, media players,
 blinds and other safe covers, fans, robot vacuums, cameras (still pictures, and live video where Home Assistant offers it), buttons, scenes and scripts,
-sensors and binary sensors. Locks, alarms, and doors, garage doors and gates are deliberately left out. Version 1.0.0 is the first
+sensors and binary sensors. Locks, alarms, and doors, garage doors and gates are deliberately left out, and an optional PIN lock keeps guests and children out. Version 1.0.0 is the first
 for other people: see [docs/install.md](docs/install.md) to install it, and [CHANGELOG.md](CHANGELOG.md).
 
 To add a type of device, follow [docs/adding-a-device-type.md](docs/adding-a-device-type.md).
@@ -89,6 +89,9 @@ On a keyboard, the arrow keys and Enter stand in for the remote, and Escape is B
 to open its panel. Escape on the home screen does nothing in a browser; on a TV it goes to the TV's Home
 screen (webOS 5 and older) or asks whether to leave (webOS 6 and newer).
 
+Both servers accept connections from this computer only. To reach them from a TV or another device, set
+`DEV_OPEN=1` first (in PowerShell: `$env:DEV_OPEN=1`, then the command).
+
 A real Home Assistant refuses the sign-in from a desktop browser (it only accepts it from the TV app, or
 from its own pages). To use a real one from the desktop, type its address, choose "Advanced: use an
 access token" under the address field and paste a long-lived access token from your Home Assistant profile page.
@@ -127,6 +130,15 @@ Three checks guard this, and each covers one thing only:
 
 No check covers every browser feature. Before using one that this project does not use yet, look it up for
 Chrome 53 on [caniuse.com](https://caniuse.com) and try it on a TV.
+
+## Security
+
+- `npm audit` reports known vulnerabilities inside `@webos-tools/cli`, LG's packaging tool. That tool
+  pins the exact versions of its own libraries, so `npm audit fix` cannot update them. It runs only on the
+  developer's computer to make the package; none of it goes to the TV. The libraries that do go to the TV
+  (`preact`, `core-js`, `home-assistant-js-websocket`) are checked by `npm audit --omit=dev`.
+- What the app stores and promises, in plain words, is in the "Keeping it safe" section of
+  [docs/install.md](docs/install.md).
 
 ## Licence
 

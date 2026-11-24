@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2.0
+
+- **PIN lock** (optional, off by default): in Settings, set a 4-digit PIN and the app asks for it when
+  it opens and when you come back to it. Forgotten PIN: sign out from the lock screen.
+- From a security review:
+  - The app no longer says nothing on the TV can open your home. Locks, alarms and doors are hidden, but
+    the app cannot know what a switch, button, script or scene does.
+  - A camera's picture is only ever fetched from your Home Assistant.
+  - Signing out with a long-lived access token says the token keeps working until you delete it.
+  - The install guide has a "Keeping it safe" section.
+
 ## 1.1.1
 
 - A Ring camera's picture is the first frame of its last recording, not a current view (that is what

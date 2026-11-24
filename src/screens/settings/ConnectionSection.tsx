@@ -9,6 +9,8 @@ import { focusFirst, topScope } from '../shared/focus';
 export interface ConnectionSectionProps {
   address: string;
   userName: string;
+  /** True when signed in with a long-lived access token, which signing out cannot cancel. */
+  isToken: boolean;
   onSignOut(): void;
 }
 
@@ -42,6 +44,12 @@ export function ConnectionSection(props: ConnectionSectionProps) {
             Sign out of Home Assistant on this TV? Your layout is kept for the next time you sign
             in.
           </p>
+          {props.isToken && (
+            <p class="settings-note">
+              Your access token keeps working until you delete it in Home Assistant: open your
+              profile there, then Security, then Long-lived access tokens.
+            </p>
+          )}
           <div class="settings-buttons" data-focus-row>
             <button
               class={'button button-main' + (isSigningOut ? ' button-busy' : '')}

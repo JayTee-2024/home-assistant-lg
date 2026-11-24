@@ -586,6 +586,7 @@ export function App() {
           layout={saved.layout}
           address={saved.signIn === null ? '' : saved.signIn.address}
           userName={userName}
+          isToken={saved.signIn !== null && saved.signIn.kind === 'long-lived-token'}
           onToggleDevice={toggleDevice}
           onUnsupportedDevice={(device) => showToast(device.name + ' is not supported yet.')}
           onSignOut={signOut}

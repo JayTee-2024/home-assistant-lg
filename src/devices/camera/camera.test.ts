@@ -103,3 +103,18 @@ describe('readCamera, recordings', () => {
     );
   });
 });
+
+describe('pictureUrl, safety', () => {
+  it('only accepts a path on the Home Assistant server', () => {
+    const home = 'http://192.168.1.100:8123';
+    // "@host" after the address would make the browser read the address as a username.
+    expect(pictureUrl(home, '@other.example/x.jpg', 1)).toBeNull();
+    expect(pictureUrl(home, '.other.example/x.jpg', 1)).toBeNull();
+    expect(pictureUrl(home, 'http://other.example/x.jpg', 1)).toBeNull();
+    expect(pictureUrl(home, '//other.example/x.jpg', 1)).toBeNull();
+    expect(pictureUrl(home, '', 1)).toBeNull();
+    expect(pictureUrl(home, '/api/camera_proxy/camera.a?token=t', 1)).toBe(
+      'http://192.168.1.100:8123/api/camera_proxy/camera.a?token=t&_=1',
+    );
+  });
+});

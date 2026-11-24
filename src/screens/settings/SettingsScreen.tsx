@@ -28,6 +28,8 @@ export interface SettingsScreenProps {
   layout: Layout;
   address: string;
   userName: string;
+  /** True when signed in with a long-lived access token. */
+  isToken: boolean;
   onToggleDevice(device: Device): void;
   onUnsupportedDevice(device: Device): void;
   onSignOut(): void;
@@ -110,6 +112,7 @@ export function SettingsScreen(props: SettingsScreenProps) {
               <ConnectionSection
                 address={props.address}
                 userName={props.userName}
+                isToken={props.isToken}
                 onSignOut={props.onSignOut}
               />
             </div>
