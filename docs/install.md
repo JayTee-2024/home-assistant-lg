@@ -91,16 +91,18 @@ To update, download the newer `.ipk` and install it the same way. Your sign-in a
    live, where Home Assistant offers live video for it; sound starts off.
 
 Locks, alarms, and doors, garage doors and gates are deliberately not shown: they are listed in Settings
-as **Not supported yet**. The app cannot tell what a switch, button, script or scene does, though, so do
-not add one that opens something (a garage door wired to a switch, or a script that unlocks a door).
+as **Not supported yet**. The app cannot tell what a switch, button, script or scene does, though. If any
+of yours controls something sensitive (a garage door wired to a switch, or a script that unlocks a door),
+leave it off the home screen, or turn on the **PIN lock** in the app's Settings so only people who know
+the PIN can use it.
 
 To sign in as someone else or change the address, open **Settings**, then **Connection**, and choose
 **Sign out**. The back button on the remote leaves the app.
 
 ## Keeping it safe
 
-- **Anyone with the remote can use the app.** To stop that, turn on the **PIN lock** in the app's
-  Settings: the app then asks for a 4-digit PIN when it opens and when you come back to it. If you forget
+- **Anyone with the remote can use the app.** If anything in your Home Assistant controls something
+  sensitive, set a PIN: turn on the **PIN lock** in the app's Settings: the app then asks for a 4-digit PIN when it opens and when you come back to it. If you forget
   the PIN, the lock screen lets you sign out, and you sign in again with your Home Assistant password.
 - **The TV keeps a sign-in pass** from Home Assistant (never your password). Anyone who could copy it off
   the TV could control your home with it, so **sign out before you sell or give away the TV**: open

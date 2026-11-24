@@ -125,7 +125,8 @@ export function PinSection(props: PinSectionProps) {
     <div>
       <p class="settings-note">
         With the PIN lock on, this app asks for a 4-digit PIN when it opens and when you come back
-        to it. It keeps guests and children out of your home's controls.
+        to it. It keeps guests and children out of your home's controls. Turn it on if any switch,
+        button, script or scene on your home screen controls something sensitive.
       </p>
       <p class="settings-note">
         Choose a PIN you do not use for anything else, such as a bank card: it is kept on this TV.
