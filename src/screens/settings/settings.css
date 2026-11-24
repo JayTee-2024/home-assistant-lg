@@ -115,6 +115,36 @@
   font-size: 1.5rem;
 }
 
+/* ---- PIN lock ---- */
+
+.settings-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: 1.5rem;
+}
+
+.settings-pin .pin-pad {
+  align-items: flex-start;
+}
+
+.settings-pin .pin-dot:first-child {
+  margin-left: 0;
+}
+
+.settings-pin .pin-key:first-child,
+.settings-pin .pin-key-gap {
+  margin-left: 0;
+}
+
+.settings-pin-cancel {
+  margin-top: 0.75rem;
+}
+
+.settings-pin-done {
+  color: #ffb454;
+}
+
 /* ---- About ---- */
 
 .about-app {

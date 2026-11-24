@@ -59,6 +59,7 @@ import {
 } from '../screens/shared/focus';
 import { Toast } from '../screens/shared/Toast';
 import { SignInScreen } from '../screens/sign-in/SignInScreen';
+import { LockScreen } from '../screens/lock/LockScreen';
 
 type Phase = 'starting' | 'signed-out' | 'connecting' | 'home';
 
@@ -102,6 +103,10 @@ export function App() {
   const [pageEntry, setPageEntry] = useState<PageEntry | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [userName, setUserName] = useState('');
+  // The PIN lock (src/core/pin-lock.ts). The app starts locked when a PIN is set.
+  const [isLocked, setIsLocked] = useState(() => saved.pin !== null);
+  // Locked only while there is a sign-in to guard: signing out removes the PIN.
+  const locked = isLocked && saved.pin !== null && saved.signIn !== null;
 
   // The newest saved state, for code that runs later (timers, the connection's callbacks)
   // and would otherwise see the state as it was when that code was set up.
@@ -130,7 +135,7 @@ export function App() {
   const devices = buildDevices(shownHome, DEVICE_TYPES);
 
   // The remote's key listener is set up once, so it reads the current values through this.
-  const current = useRef({ phase, overlay, page, devices, shownHome, status, pages: 1 });
+  const current = useRef({ phase, overlay, page, devices, shownHome, status, pages: 1, locked });
   current.current = {
     phase,
     overlay,
@@ -139,6 +144,7 @@ export function App() {
     shownHome,
     status,
     pages: pageCount(saved.layout),
+    locked,
   };
 
   /** Changes what is saved, on screen and on the TV's storage together. */
@@ -331,6 +337,25 @@ export function App() {
     // The empty list means: run once, when the app starts.
   }, []);
 
+  // The PIN lock: lock again whenever the app is left (the Home button, another input), so
+  // coming back asks for the PIN. Whatever was open is closed.
+  useEffect(() => {
+    const onVisibility = () => {
+      if (!document.hidden || savedRef.current.pin === null) return;
+      setOverlay(NO_OVERLAY);
+      setIsLocked(true);
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, []);
+
+  // After unlocking, the screen underneath is drawn afresh: give its first control the focus.
+  const wasLocked = useRef(locked);
+  useEffect(() => {
+    if (wasLocked.current && !locked) focusFirst(topScope());
+    wasLocked.current = locked;
+  }, [locked]);
+
   // Keep the saved layout in step with the devices as they are now (see withCurrentSizes).
   useEffect(() => {
     if (phase !== 'home') return;
@@ -450,7 +475,7 @@ export function App() {
         // Back closes what is open; on a first screen it hands over to the TV (see back.ts).
         // While the TV keyboard is open it is left alone, so the keyboard can close itself.
         // (A focused field is not enough to tell: the sign-in forms focus their first field.)
-        if (now.overlay.kind !== 'none') closeOverlay();
+        if (now.overlay.kind !== 'none' && !now.locked) closeOverlay();
         else if (isKeyboardOpen()) return;
         else leaveToTv();
         event.preventDefault();
@@ -467,7 +492,7 @@ export function App() {
       if (moveFocus(topScope(), key)) return;
 
       // Nothing that way. On the home screen, Left and Right flip the page.
-      if (now.phase !== 'home' || now.overlay.kind !== 'none') return;
+      if (now.phase !== 'home' || now.overlay.kind !== 'none' || now.locked) return;
       if (key === 'left' && now.page > 0) showPage(now.page - 1, 'right');
       if (key === 'right' && now.page < now.pages - 1) showPage(now.page + 1, 'left');
     };
@@ -491,6 +516,10 @@ export function App() {
   }, []);
 
   if (phase === 'starting') return null;
+
+  if (locked && saved.pin !== null) {
+    return <LockScreen pin={saved.pin} onUnlock={() => setIsLocked(false)} onSignOut={signOut} />;
+  }
 
   if (phase === 'signed-out') {
     return (
@@ -560,6 +589,8 @@ export function App() {
           onToggleDevice={toggleDevice}
           onUnsupportedDevice={(device) => showToast(device.name + ' is not supported yet.')}
           onSignOut={signOut}
+          pin={saved.pin}
+          onSetPin={(pin) => updateSaved((state) => ({ ...state, pin }))}
           onReorganise={() => setOverlay({ kind: 'reorganise' })}
           onClose={closeOverlay}
         />

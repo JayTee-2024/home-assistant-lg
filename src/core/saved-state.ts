@@ -1,8 +1,8 @@
 /**
  * What the app keeps between runs, and how it is written to and read from text.
  *
- * Three things are kept, on the TV only: the Home Assistant address, the tokens from
- * signing in, and the layout. The password is never kept. It is not a field of anything
+ * Four things are kept, on the TV only: the Home Assistant address, the tokens from
+ * signing in, the layout, and the PIN lock's PIN when it is on. The password is never kept. It is not a field of anything
  * here, and serialiseSavedState writes only the fields it names.
  *
  * Reading never fails. Whatever is found (nothing, damaged text, data from another version)
@@ -20,6 +20,7 @@ import {
   type Layout,
 } from './layout';
 import type { CardSize } from './part-type';
+import { isValidPin } from './pin-lock';
 
 /** Change this number when the saved shape changes, so old data is ignored and not misread. */
 const SAVED_VERSION = 1;
@@ -42,12 +43,15 @@ export interface SavedState {
   layout: Layout;
   /** The Home Assistant address the layout belongs to. Kept through sign-out. */
   layoutAddress: string | null;
+  /** The PIN lock's four digits, or null when the lock is off (see pin-lock.ts). */
+  pin: string | null;
 }
 
 export const EMPTY_SAVED_STATE: SavedState = {
   signIn: null,
   layout: EMPTY_LAYOUT,
   layoutAddress: null,
+  pin: null,
 };
 
 export function serialiseSavedState(state: SavedState): string {
@@ -75,6 +79,7 @@ export function serialiseSavedState(state: SavedState): string {
       })),
     },
     layoutAddress: state.layoutAddress,
+    pin: state.pin,
   });
 }
 
@@ -91,10 +96,13 @@ export function parseSavedState(text: string | null): SavedState {
   if (!isRecord(saved) || saved['version'] !== SAVED_VERSION) return EMPTY_SAVED_STATE;
 
   const layoutAddress = saved['layoutAddress'];
+  const pin = saved['pin'];
   return {
     signIn: readSignIn(saved['signIn']),
     layout: readLayout(saved['layout']),
     layoutAddress: typeof layoutAddress === 'string' ? layoutAddress : null,
+    // Absent in data saved before the PIN lock existed: the lock is then off.
+    pin: typeof pin === 'string' && isValidPin(pin) ? pin : null,
   };
 }
 
@@ -110,12 +118,16 @@ export function afterSignIn(state: SavedState, signIn: SavedSignIn): SavedState 
     signIn,
     layout: sameHome ? state.layout : EMPTY_LAYOUT,
     layoutAddress: signIn.address,
+    pin: state.pin,
   };
 }
 
-/** The state after signing out: the tokens go, the layout stays for the next sign-in. */
+/**
+ * The state after signing out: the tokens go, the layout stays for the next sign-in. The PIN
+ * goes too: it guards a sign-in, and signing out is the way past a forgotten PIN.
+ */
 export function afterSignOut(state: SavedState): SavedState {
-  return { signIn: null, layout: state.layout, layoutAddress: state.layoutAddress };
+  return { signIn: null, layout: state.layout, layoutAddress: state.layoutAddress, pin: null };
 }
 
 function isRecord(value: unknown): value is { [name: string]: unknown } {
