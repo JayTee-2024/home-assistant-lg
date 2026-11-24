@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.1
+
+- A heating card now shows as on whenever the heating is switched on, in the same colour as other
+  active cards. Before, it only lit while the room was actually being heated.
+- After you switch heating on or off, or change the temperature, the card updates straight away instead
+  of showing the old state until Home Assistant next reports.
+
 ## 1.2.0
 
 - **PIN lock** (optional, off by default): in Settings, set a 4-digit PIN and the app asks for it when
