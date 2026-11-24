@@ -10,11 +10,22 @@ import { WebSocketServer } from 'ws';
 import { createFakeHome } from './fake-home.mjs';
 
 /**
+ * By default only this computer can connect. Pass `host: ALL_DEVICES` to let other devices
+ * on the network (a TV) connect too.
+ */
+export const LOCAL_ONLY = '127.0.0.1';
+export const ALL_DEVICES = '0.0.0.0';
+
+/**
  * Starts the stand-in home. Port 0 means "any free port". `pictureDelayMs` makes camera
  * pictures arrive late, like a cloud camera's.
  * Resolves with { address, home, stop() }; `address` is like 'http://localhost:8124'.
  */
-export function startFakeHomeServer(sampleHome, port, { pictureDelayMs = 0 } = {}) {
+export function startFakeHomeServer(
+  sampleHome,
+  port,
+  { pictureDelayMs = 0, host = LOCAL_ONLY } = {},
+) {
   const home = createFakeHome(sampleHome);
 
   const httpServer = createServer((request, response) => {
@@ -65,7 +76,7 @@ export function startFakeHomeServer(sampleHome, port, { pictureDelayMs = 0 } = {
   });
 
   return new Promise((resolve) => {
-    httpServer.listen(port, () => {
+    httpServer.listen(port, host, () => {
       resolve({
         address: 'http://localhost:' + httpServer.address().port,
         home,

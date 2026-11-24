@@ -23,7 +23,7 @@ const signIn: SavedSignIn = {
 };
 
 const layout = addCard(addCard(EMPTY_LAYOUT, 'device:lamp', 'small'), 'device:heating', 'wide');
-const state: SavedState = { signIn, layout, layoutAddress: signIn.address };
+const state: SavedState = { signIn, layout, layoutAddress: signIn.address, pin: null };
 
 describe('saving and reading back', () => {
   it('gives back exactly what was saved', () => {
@@ -31,7 +31,12 @@ describe('saving and reading back', () => {
   });
 
   it('gives back a signed-out state exactly too', () => {
-    const signedOut: SavedState = { signIn: null, layout, layoutAddress: signIn.address };
+    const signedOut: SavedState = {
+      signIn: null,
+      layout,
+      layoutAddress: signIn.address,
+      pin: null,
+    };
 
     expect(parseSavedState(serialiseSavedState(signedOut))).toEqual(signedOut);
   });
@@ -44,6 +49,7 @@ describe('saving and reading back', () => {
     expect(Object.keys(JSON.parse(text) as object).sort()).toEqual([
       'layout',
       'layoutAddress',
+      'pin',
       'signIn',
       'version',
     ]);
@@ -150,7 +156,12 @@ describe('afterSignIn', () => {
   it('starts an empty layout for the first ever sign-in', () => {
     const first = afterSignIn(EMPTY_SAVED_STATE, signIn);
 
-    expect(first).toEqual({ signIn, layout: EMPTY_LAYOUT, layoutAddress: signIn.address });
+    expect(first).toEqual({
+      signIn,
+      layout: EMPTY_LAYOUT,
+      layoutAddress: signIn.address,
+      pin: null,
+    });
   });
 });
 
@@ -158,8 +169,52 @@ describe('afterSignOut', () => {
   it('removes the tokens and keeps the layout and which Home Assistant it belongs to', () => {
     const signedOut = afterSignOut(state);
 
-    expect(signedOut).toEqual({ signIn: null, layout, layoutAddress: signIn.address });
+    expect(signedOut).toEqual({
+      signIn: null,
+      layout,
+      layoutAddress: signIn.address,
+      pin: null,
+    });
     expect(serialiseSavedState(signedOut)).not.toContain('refresh-def');
     expect(serialiseSavedState(signedOut)).not.toContain('access-abc');
+  });
+});
+
+describe('the PIN', () => {
+  const signedIn: SavedState = {
+    signIn: {
+      address: 'http://ha:8123',
+      kind: 'account',
+      accessToken: 'a',
+      refreshToken: 'r',
+      expiresAt: 5,
+    },
+    layout: EMPTY_LAYOUT,
+    layoutAddress: 'http://ha:8123',
+    pin: '0412',
+  };
+
+  it('is saved and read back', () => {
+    expect(parseSavedState(serialiseSavedState(signedIn)).pin).toBe('0412');
+  });
+
+  it('is off when the saved data has none, as data from before the PIN existed', () => {
+    const old = JSON.parse(serialiseSavedState(signedIn));
+    delete old.pin;
+    const read = parseSavedState(JSON.stringify(old));
+    expect(read.pin).toBeNull();
+    expect(read.signIn).not.toBeNull();
+  });
+
+  it('is off when the saved value is not four digits', () => {
+    for (const bad of ['12', 'abcd', 1234, {}]) {
+      const text = JSON.stringify({ ...JSON.parse(serialiseSavedState(signedIn)), pin: bad });
+      expect(parseSavedState(text).pin).toBeNull();
+    }
+  });
+
+  it('is removed by signing out, and kept by signing in again to the same home', () => {
+    expect(afterSignOut(signedIn).pin).toBeNull();
+    expect(afterSignIn({ ...signedIn, signIn: null }, signedIn.signIn!).pin).toBe('0412');
   });
 });

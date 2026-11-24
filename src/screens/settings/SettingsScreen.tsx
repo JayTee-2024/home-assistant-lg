@@ -4,6 +4,7 @@
  *   Devices            the device picker
  *   Reorganise layout  leaves Settings for the reorganise mode
  *   Connection         the address, the signed-in user, and Sign out
+ *   PIN lock           turn the optional PIN lock on or off, or change the PIN
  *   About              what the app is, its version and licence, and a word about Games Unleashed
  *
  * The app's version is shown in small text at the bottom of the list.
@@ -19,6 +20,7 @@ import { focusFirst, topScope } from '../shared/focus';
 import { CLOSE_ICON, Icon } from '../shared/Icon';
 import { AboutSection } from './AboutSection';
 import { ConnectionSection } from './ConnectionSection';
+import { PinSection } from './PinSection';
 import { DevicePicker } from './DevicePicker';
 
 export interface SettingsScreenProps {
@@ -26,15 +28,20 @@ export interface SettingsScreenProps {
   layout: Layout;
   address: string;
   userName: string;
+  /** True when signed in with a long-lived access token. */
+  isToken: boolean;
   onToggleDevice(device: Device): void;
   onUnsupportedDevice(device: Device): void;
   onSignOut(): void;
+  /** The PIN lock's PIN, or null when it is off. */
+  pin: string | null;
+  onSetPin(pin: string | null): void;
   /** Leaves Settings for the "Reorganise layout" mode. */
   onReorganise(): void;
   onClose(): void;
 }
 
-type Section = 'devices' | 'connection' | 'about';
+type Section = 'devices' | 'connection' | 'pin' | 'about';
 
 export function SettingsScreen(props: SettingsScreenProps) {
   const [section, setSection] = useState<Section>('devices');
@@ -70,6 +77,11 @@ export function SettingsScreen(props: SettingsScreenProps) {
             onPress={() => setSection('connection')}
           />
           <SectionButton
+            label="PIN lock"
+            isCurrent={section === 'pin'}
+            onPress={() => setSection('pin')}
+          />
+          <SectionButton
             label="About"
             isCurrent={section === 'about'}
             onPress={() => setSection('about')}
@@ -100,8 +112,16 @@ export function SettingsScreen(props: SettingsScreenProps) {
               <ConnectionSection
                 address={props.address}
                 userName={props.userName}
+                isToken={props.isToken}
                 onSignOut={props.onSignOut}
               />
+            </div>
+          )}
+
+          {section === 'pin' && (
+            <div>
+              <h1>PIN lock</h1>
+              <PinSection pin={props.pin} onSetPin={props.onSetPin} />
             </div>
           )}
 

@@ -31,7 +31,7 @@ export function AboutSection() {
       <p class="settings-note">
         This TV talks straight to your own Home Assistant. Nothing is sent anywhere else, and your
         password is never stored. Locks, alarms, doors, garage doors and gates are deliberately not
-        supported, so nothing on this TV can open your home.
+        shown. Switches, buttons, scripts and scenes are, so do not add one that opens something.
       </p>
 
       {/* Side by side, so the whole section fits on the screen without scrolling. */}

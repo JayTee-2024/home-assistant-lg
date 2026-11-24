@@ -50,6 +50,10 @@ export function pictureUrl(
   refreshCount: number,
 ): string | null {
   if (picturePath === null) return null;
+  // Only a path on the Home Assistant server is accepted: one "/" and then the rest. The
+  // address and path are joined as text, so anything else could change which server the
+  // picture comes from ("@other.example/x" would turn the address into a username).
+  if (picturePath.charAt(0) !== '/' || picturePath.charAt(1) === '/') return null;
 
   const base = homeAddress.replace(/\/$/, '');
   const joiner = picturePath.indexOf('?') === -1 ? '?' : '&';
