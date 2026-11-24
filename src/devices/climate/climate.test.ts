@@ -118,6 +118,40 @@ describe('climate actions', () => {
   });
 });
 
+describe('what the card shows straight after a press, before Home Assistant reports', () => {
+  const idleAt14 = changed(tado, { temperature: 14, current_temperature: 22.1, hvac_action: 'idle' });
+  const off = changed(tado, { temperature: null, hvac_action: 'off' }, 'off');
+
+  it('a target above the room temperature shows as heating, and the card is on', () => {
+    const predicted = setTarget(idleAt14, 23).predicted;
+    expect(readClimate(predicted).hvacAction).toBe('heating');
+    expect(climateType.isActive(predicted)).toBe(true);
+  });
+
+  it('a target at or below the room temperature shows as idle', () => {
+    expect(readClimate(setTarget(tado, 19).predicted).hvacAction).toBe('idle');
+    expect(readClimate(setTarget(tado, 20.5).predicted).hvacAction).toBe('idle');
+  });
+
+  it('switching off shows as off, and switching on no longer says Off', () => {
+    expect(readClimate(setHvacMode(tado, 'off').predicted).hvacAction).toBe('off');
+    // The target a thermostat picks when switched on is not known yet: on, but not known to be heating.
+    expect(readClimate(setHvacMode(off, 'heat').predicted).hvacAction).toBe('idle');
+    expect(readClimate(setHvacMode(idleAt14, 'heat').predicted).hvacAction).toBe('idle');
+    expect(readClimate(setHvacMode(changed(tado, {}, 'off'), 'heat').predicted).hvacAction).toBe('heating');
+  });
+
+  it('a target set while off does not pretend the heating is on', () => {
+    expect(readClimate(setTarget(off, 23).predicted).hvacAction).toBe('off');
+  });
+
+  it('a thermostat that never says what it is doing gets no guess', () => {
+    const quiet = changed(tado, { hvac_action: undefined });
+    expect(readClimate(setTarget(quiet, 23).predicted).hvacAction).toBe(null);
+    expect(readClimate(setHvacMode(quiet, 'off').predicted).hvacAction).toBe(null);
+  });
+});
+
 describe('the heating type', () => {
   it('is a wide card that opens its panel on OK', () => {
     expect(climateType.cardSize).toBe('wide');
