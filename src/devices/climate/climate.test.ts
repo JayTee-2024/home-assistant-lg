@@ -119,7 +119,11 @@ describe('climate actions', () => {
 });
 
 describe('what the card shows straight after a press, before Home Assistant reports', () => {
-  const idleAt14 = changed(tado, { temperature: 14, current_temperature: 22.1, hvac_action: 'idle' });
+  const idleAt14 = changed(tado, {
+    temperature: 14,
+    current_temperature: 22.1,
+    hvac_action: 'idle',
+  });
   const off = changed(tado, { temperature: null, hvac_action: 'off' }, 'off');
 
   it('a target above the room temperature shows as heating, and the card is on', () => {
@@ -138,7 +142,9 @@ describe('what the card shows straight after a press, before Home Assistant repo
     // The target a thermostat picks when switched on is not known yet: on, but not known to be heating.
     expect(readClimate(setHvacMode(off, 'heat').predicted).hvacAction).toBe('idle');
     expect(readClimate(setHvacMode(idleAt14, 'heat').predicted).hvacAction).toBe('idle');
-    expect(readClimate(setHvacMode(changed(tado, {}, 'off'), 'heat').predicted).hvacAction).toBe('heating');
+    expect(readClimate(setHvacMode(changed(tado, {}, 'off'), 'heat').predicted).hvacAction).toBe(
+      'heating',
+    );
   });
 
   it('a target set while off does not pretend the heating is on', () => {
@@ -159,10 +165,13 @@ describe('the heating type', () => {
     expect(climateType.okAction(changed(tado, {}, 'unavailable'))).toBe('nothing');
   });
 
-  it('is shown as on while heating, and off when idle or off', () => {
+  it('is shown as on whenever it is switched on, heating or idle, and off when off or unavailable', () => {
     expect(climateType.isActive(tado)).toBe(true);
-    expect(climateType.isActive(changed(tado, { hvac_action: 'idle' }))).toBe(false);
+    expect(climateType.isActive(changed(tado, { hvac_action: 'idle' }))).toBe(true);
+    expect(climateType.isActive(changed(tado, { hvac_action: 'idle' }, 'auto'))).toBe(true);
+    expect(climateType.isActive(changed(tado, { hvac_action: 'off' }, 'off'))).toBe(false);
     expect(climateType.isActive(changed(tado, { hvac_action: null }, 'off'))).toBe(false);
+    expect(climateType.isActive(changed(tado, {}, 'unavailable'))).toBe(false);
   });
 
   it('sums itself up as the current and target temperatures', () => {

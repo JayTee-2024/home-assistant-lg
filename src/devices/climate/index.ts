@@ -17,11 +17,10 @@ export const climateType: DeviceType = {
   supports: () => true,
 
   okAction: (entity) => (readClimate(entity).isAvailable ? 'open-panel' : 'nothing'),
+  // On whenever it is switched on, as a light's card is: the card's words say whether it is heating or idle.
   isActive: (entity) => {
     const view = readClimate(entity);
-    if (view.hvacAction !== null)
-      return view.hvacAction === 'heating' || view.hvacAction === 'cooling';
-    return view.hvacMode !== 'off';
+    return view.isAvailable && view.hvacMode !== 'off';
   },
   summary: (entity) => {
     const view = readClimate(entity);
